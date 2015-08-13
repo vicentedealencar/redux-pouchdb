@@ -1,0 +1,23 @@
+{
+  "name": "redux-pouchdb",
+  "version": "0.0.1",
+  "description": "sync store state to pouchdb",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vicentedealencar/redux-pouchdb"
+  },
+  "keywords": [
+    "redux",
+    "pouchdb"
+  ],
+  "author": "Vicente de Alencar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vicentedealencar/redux-pouchdb/issues"
+  },
+  "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
+  "dependencies": {
+    "pouchdb": "^4.0.0"
+  }
+}
