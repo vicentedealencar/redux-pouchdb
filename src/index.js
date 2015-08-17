@@ -1,23 +1,12 @@
 import PouchDB from 'pouchdb';
 
-export const DB_CHANGES = 'DB_CHANGES';
-
-var db = new PouchDB('app');
+const DB_CHANGES = 'DB_CHANGES';
+const db = new PouchDB('app');
 const docId = 'redux-store';
 const emptyDoc = {_id: docId};
 
-export const getState = () => {
-  return db.get(docId).catch(function (err) {
-    if (err.status === 404) { // not found!
-      return db.put(emptyDoc).then(() => db.get(docId));
-    } else { // hm, some other error
-      throw err;
-    }
-  });
-}
-
-export const persistState = () => createStore => (reducer, initialState) => {
-  const store = createStore(reducer, initialState);
+export const persistentStore = storeCreator => (reducer, initialState) => {
+  const store = storeCreator(reducer, initialState);
 
   db.changes({include_docs: true}).on('change', function(change) {
     store.dispatch({ type: DB_CHANGES, ...change.doc});
@@ -26,14 +15,25 @@ export const persistState = () => createStore => (reducer, initialState) => {
   return store;
 };
 
+export const persistentReducer = reducer => (state, action) => {
+  if (action.type === DB_CHANGES && action[reducer.name]) {
+    return action[reducer.name]; //short-circuit reducer
+  }
+
+  const nextState = reducer(state, action);
+
+  persistState({[reducer.name]: nextState});
+
+  return nextState;
+};
+
 let unpersistedState = null;
 let isUpdating = false;
-
-const updateState = (reducerName, nextState) => {
+const persistState = (nextState) => {
   if (isUpdating) {
     unpersistedState = {
       ...unpersistedState,
-      [reducerName]: nextState
+      ...nextState
     };
 
     return;
@@ -45,7 +45,7 @@ const updateState = (reducerName, nextState) => {
     const newDoc = {
       ...doc,
       ...unpersistedState,
-      [reducerName]: nextState
+      ...nextState
     };
 
     // console.log('old', doc);
@@ -56,7 +56,7 @@ const updateState = (reducerName, nextState) => {
       isUpdating = false;
 
       if (unpersistedState) {
-        updateState(unpersistedState);
+        persistState(unpersistedState);
       }
     });
 
@@ -64,18 +64,14 @@ const updateState = (reducerName, nextState) => {
   });
 };
 
-export function persist(reducer) {
-  const fn = (state, action) => {
-    const nextState = action.type === DB_CHANGES ? 
-      action[reducer.name] :
-      reducer(state, action);
-
-    updateState(reducer.name, nextState);
-
-    return nextState;
-  };
-
-  return fn;
+const getState = () => {
+  return db.get(docId).catch(err => {
+    if (err.status === 404) {
+      return db.put(emptyDoc).then(() => db.get(docId));
+    } else {
+      throw err;
+    }
+  });
 }
 
 window.destroyDb = () => db.destroy();

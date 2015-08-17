@@ -1,28 +1,36 @@
 # redux-pouchdb
 
+## What is going on here?
+
+It is very simple:
+- The [PouchDB](http://pouchdb.com/) database persists the state of the [Redux](rackt.github.io/redux) store every time it changes.
+- An action with type DB_CHANGES is dispatched to the store every time the database syncs.
+
 ## Usage
 
-`persistState` store enhancer
+### `persistentStore`
 
 ``` js
-import { createStore, applyMiddleware, combineReducers, compose } from 'redux';
-import thunk from 'redux-thunk';
-import * as reducers from './reducers';
-import { persistState } from 'redux-pouchdb';
+import { persistentStore } from 'redux-pouchdb';
+
+//optional
+const applyMiddlewares = applyMiddleware(
+  thunkMiddleware,
+  loggerMiddleware
+);
 
 const createStoreWithMiddleware = compose(
-  applyMiddleware(thunk),
-  persistState(),
+  applyMiddlewares,
+  persistentStore,
   createStore);
-const reducer = combineReducers(reducers);
-const store = createStoreWithMiddleware(reducer);
+
+const store = createStoreWithMiddleware(reducer, initialState);
 ```
 
-`persist` reducer
+### `persistentReducer`
 
 ``` js
-import { persist } from 'redux-pouchdb';
-import { INCREMENT_COUNTER, DECREMENT_COUNTER } from '../actions/counter';
+import { persistentReducer } from 'redux-pouchdb';
 
 function counter(state = 0, action) {
   switch (action.type) {
@@ -35,5 +43,5 @@ function counter(state = 0, action) {
   }
 }
 
-export default persist(counter);
+export default persistentReducer(counter);
 ```
