@@ -1,11 +1,16 @@
 {
   "name": "redux-pouchdb",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "rimraf lib && babel src --out-dir lib"
   },
+  "files": [
+    "lib/",
+    "package.json",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/vicentedealencar/redux-pouchdb"
