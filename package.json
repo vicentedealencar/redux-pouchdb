@@ -26,6 +26,8 @@
   },
   "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
   "dependencies": {
+    "array.from": "^0.2.0",
+    "deep-equal": "^1.0.1",
     "pouchdb": "^4.0.0"
   },
   "devDependencies": {
