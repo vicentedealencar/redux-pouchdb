@@ -4,7 +4,8 @@
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
-    "prepublish": "rimraf lib && babel src --out-dir lib"
+    "prepublish": "rimraf lib && babel src --out-dir lib",
+    "test": "babel-tape-runner tests/*.js"
   },
   "files": [
     "lib/",
@@ -32,6 +33,9 @@
   },
   "devDependencies": {
     "babel": "^5.8.21",
-    "rimraf": "^2.4.2"
+    "babel-tape-runner": "^1.2.0",
+    "redux": "^2.0.0",
+    "rimraf": "^2.4.2",
+    "tape": "^4.2.0"
   }
 }
