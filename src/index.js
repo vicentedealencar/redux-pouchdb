@@ -27,36 +27,31 @@ export const persistentStore = storeCreator => (reducer, initialState) => {
 
   db.allDocs({include_docs: true}).then(res => {
     isInitialized = true;
+    console.log('initialize');
 
-    const docs = res.rows.map(row => row.doc);
-
-    docs.forEach(doc => setReducer(doc));
-
-    console.log('if not persisted, persist store.getState()', store.getState());
-    console.log(docs);
+    res.rows.forEach(row => setReducer(row.doc));
 
     store.dispatch({
       type: INIT
     });
+  }).then(() => {
+    db.changes({
+      include_docs: true,
+      live: true,
+      since: 'now'
+    }).on('change', change => {
+      // if (change.deleted) {
+      //   // change.id holds the deleted id
+      //   onDeleted(change.id);
+      // } else { // updated/inserted
+      //   // change.doc holds the new doc
+      //   onUpdatedOrInserted(change.doc);
+      // }
+      console.log('change');
+
+      setReducer(change.doc);
+    });
   }).catch(console.log.bind(console));
-
-  const options = {
-    include_docs: true,
-    live: true,
-    since: 'now'
-  };
-
-  db.changes(options).on('change', change => {
-    // if (change.deleted) {
-    //   // change.id holds the deleted id
-    //   onDeleted(change.id);
-    // } else { // updated/inserted
-    //   // change.doc holds the new doc
-    //   onUpdatedOrInserted(change.doc);
-    // }
-
-    setReducer(change.doc);
-  });
 
   return store;
 };
@@ -65,16 +60,22 @@ export const persistentReducer = reducer => {
   let lastState;
 
   return (state, action) => {
+    console.log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
         action.reducer === reducer.name) {
+      console.log('short-circuit');
+
+      lastState = action.state;
       return reducer(action.state, action);
     }
 
     const reducedState = reducer(state, action);
+    console.log('lastState and reducedState', lastState, reducedState);
 
     if (isInitialized && !equal(reducedState,lastState)) {
       lastState = reducedState;
 
+      console.log('lets save!');
       saveReducer(reducer.name, reducedState);
     }
 
