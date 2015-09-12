@@ -1,65 +1,55 @@
 import load from './load';
 
-let unpersistedState = {};
+const unpersistedQueue = {};
 let isUpdating = {};
 
 export default (db) => {
   const saveReducer = (reducerName, reducerState) => {
     if (isUpdating[reducerName]) {
-      if (Array.isArray(reducerState)) {
-        unpersistedState[reducerName] = [
-          ...(unpersistedState[reducerName] || []),
-          ...reducerState
-        ];
-      } else {
-        unpersistedState[reducerName] = {
-          ...unpersistedState[reducerName],
-          ...reducerState
-        };
-      }
+      //enqueue promise
+      unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || [];
+      unpersistedQueue[reducerName].push(reducerState);
 
-      return;
+      return Promise.resolve();
     }
 
     isUpdating[reducerName] = true;
     console.log('isUpdating:', reducerName)
 
-    load(db)(reducerName).then(doc => {
+    return load(db)(reducerName).then(doc => {
+      const newDoc = {
+        ...doc
+      };
 
-      let newState;
       if (Array.isArray(reducerState)) {
-        newState = [
+        newDoc.state = [
           ...(doc.state || []),
-          ...(unpersistedState[reducerName] || []),
           ...reducerState
         ];
       } else {
-        newState = {
+        newDoc.state = {
           ...doc.state,
-          ...unpersistedState[reducerName],
           ...reducerState
         };
       }
 
-      const newDoc = {
-        ...doc,
-        state: newState
-      };
-
-      unpersistedState[reducerName] = null;
-
+      return newDoc;
+    }).then(newDoc => {
       console.log('try put:', newDoc._id);
-      db.put(newDoc).then(() => {
-        console.log('puted:', newDoc._id);
-        console.log(newDoc);
-        isUpdating[reducerName] = false;
-        console.log('hasUpdated:', reducerName)
+      console.log(newDoc);
 
-        if (unpersistedState[reducerName]) {
-          saveReducer(unpersistedState[reducerName]);
-        }
-      }).catch(console.log.bind(console));
-    });
+      return db.put(newDoc);
+    }).then(() => {
+      isUpdating[reducerName] = false;
+      console.log('hasUpdated:', reducerName)
+    }).then(() => {
+      if (unpersistedQueue[reducerName]) {
+        const next = unpersistedQueue[reducerName].shift();
+        console.log('next', reducerName, next);
+
+        return saveReducer(next);
+      }
+    }).catch(console.log.bind(console));
   };
 
   return saveReducer;

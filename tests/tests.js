@@ -2,6 +2,10 @@ import test from 'tape';
 import { createStore, compose, applyMiddleware } from 'redux';
 import { persistentStore, persistentReducer, db, UP_TO_DATE } from '../src/index';
 import load from '../src/load';
+import PouchDB from 'pouchdb';
+import Erase from 'pouchdb-erase';
+
+PouchDB.plugin(Erase);
 
 const INCREMENT = 'INCREMENT';
 const DECREMENT = 'DECREMENT';
@@ -25,38 +29,27 @@ const finalReducer = persistentReducer(reducer);
 test('should persist store state', function (t) {
     t.plan(2);
 
-    db.allDocs({include_docs: true}).then(res => {
-      const docs = res.rows.docs;
-
-      if (!docs) {
-        return;
-      }
-
-      const promises = docs.map(d => db.remove(d));
-      console.log('removing');
-
-      return Promise.all(promises);
-    }).then(() => {
+    db.erase().then(() => {
       let store = createPersistentStore(finalReducer);
       console.log('loading');
 
-      load(db)(reducer.name).then(doc => {
-        console.log('testing',store.getState().x, doc.state.x);
-        t.equal(store.getState().x, doc.state.x);
-      }).then(() => {
-        console.log('incrementing');
-        store.dispatch({
-          type: INCREMENT
-        });
-
-        setTimeout(() => {
-          load(db)(reducer.name).then(doc => {
-            console.log('testing moar',store.getState().x, doc.state.x);
-            t.equal(store.getState().x, doc.state.x);
+      setTimeout(() => {
+        load(db)(reducer.name).then(doc => {
+          console.log('testing',store.getState().x, doc.state.x);
+          t.equal(store.getState().x, doc.state.x);
+        }).then(() => {
+          console.log('incrementing');
+          store.dispatch({
+            type: INCREMENT
           });
-        }, 1000);
-      });
 
-
+          setTimeout(() => {
+            load(db)(reducer.name).then(doc => {
+              console.log('testing moar',store.getState().x, doc.state.x);
+              t.equal(store.getState().x, doc.state.x);
+            });
+          }, 1000);
+        });
+      }, 1000);
     }).catch(e => {console.error(e)});
 });

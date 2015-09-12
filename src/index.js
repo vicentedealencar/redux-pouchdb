@@ -4,16 +4,14 @@ import 'array.from';
 import save from './save';
 
 export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
-export const INIT = 'redux-pouchdb/INIT';
+export const INIT = '@@redux-pouchdb/INIT';
 
 export const db = new PouchDB('app');
 
-let saveReducer = null;
+const saveReducer = save(db);
 let isInitialized = false;
 export const persistentStore = storeCreator => (reducer, initialState) => {
   const store = storeCreator(reducer, initialState);
-
-  saveReducer = save(db);
 
   const setReducer = doc => {
     const { _id, _rev, state } = doc;
@@ -21,7 +19,8 @@ export const persistentStore = storeCreator => (reducer, initialState) => {
     store.dispatch({
       type: SET_REDUCER,
       reducer: _id,
-      state: state
+      state,
+      _rev
     });
   };
 
@@ -29,27 +28,33 @@ export const persistentStore = storeCreator => (reducer, initialState) => {
     isInitialized = true;
     console.log('initialize');
 
-    res.rows.forEach(row => setReducer(row.doc));
-
+    const promises = res.rows.map(row => setReducer(row.doc));
+    return Promise.all(promises);
+  }).then(() => {
     store.dispatch({
       type: INIT
     });
-  }).then(() => {
-    db.changes({
+
+    return db.changes({
       include_docs: true,
       live: true,
       since: 'now'
     }).on('change', change => {
-      // if (change.deleted) {
-      //   // change.id holds the deleted id
-      //   onDeleted(change.id);
-      // } else { // updated/inserted
-      //   // change.doc holds the new doc
-      //   onUpdatedOrInserted(change.doc);
-      // }
       console.log('change');
+      console.log(change);
+      console.log('!equal SET_REDUCER', change.doc.state, store.getState());
 
-      setReducer(change.doc);
+      const storeState = store.getState();
+
+      if (change.doc.state) {
+        if (!equal(change.doc.state, storeState)) {
+          console.log('setReducert');
+          setReducer(change.doc);
+        }
+      } else {
+        console.log('saveReducer');
+        saveReducer(change.doc._id, store.getState());
+      }
     });
   }).catch(console.log.bind(console));
 
@@ -62,7 +67,8 @@ export const persistentReducer = reducer => {
   return (state, action) => {
     console.log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
-        action.reducer === reducer.name) {
+        action.reducer === reducer.name &&
+        action.state) {
       console.log('short-circuit');
 
       lastState = action.state;
@@ -70,7 +76,7 @@ export const persistentReducer = reducer => {
     }
 
     const reducedState = reducer(state, action);
-    console.log('lastState and reducedState', lastState, reducedState);
+    console.log('reducedState', reducedState);
 
     if (isInitialized && !equal(reducedState,lastState)) {
       lastState = reducedState;
@@ -83,4 +89,5 @@ export const persistentReducer = reducer => {
   };
 };
 
-//window.window.PouchDB = db;
+const window = window || {};
+window.PouchDB = db;
