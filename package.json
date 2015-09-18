@@ -1,6 +1,6 @@
 {
   "name": "redux-pouchdb",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
@@ -18,10 +18,11 @@
   },
   "keywords": [
     "redux",
+    "react-component",
     "pouchdb"
   ],
   "author": "Vicente de Alencar",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/vicentedealencar/redux-pouchdb/issues"
   },
@@ -29,13 +30,13 @@
   "dependencies": {
     "array.from": "^0.2.0",
     "deep-equal": "^1.0.1",
-    "pouchdb": "^4.0.0"
+    "pouchdb": "^4.0.3"
   },
   "devDependencies": {
     "babel": "^5.8.21",
     "babel-tape-runner": "^1.2.0",
     "pouchdb-erase": "^1.0.2",
-    "redux": "^2.0.0",
+    "redux": "^3.0.0",
     "rimraf": "^2.4.2",
     "tape": "^4.2.0"
   }

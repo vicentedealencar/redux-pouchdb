@@ -1,3 +1,5 @@
+/* global window */
+
 import PouchDB from 'pouchdb';
 import equal from 'deep-equal';
 import 'array.from';
@@ -89,5 +91,6 @@ export const persistentReducer = reducer => {
   };
 };
 
-const window = window || {};
-window.PouchDB = db;
+if (typeof window !== 'undefined') {
+  window.PouchDB = db;
+}
