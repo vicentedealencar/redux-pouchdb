@@ -1,16 +1,16 @@
 import test from 'tape';
 import { createStore, compose, applyMiddleware } from 'redux';
-import { persistentStore, persistentReducer, db, UP_TO_DATE } from '../src/index';
+import { persistentStore, persistentReducer } from '../src/index';
 import load from '../src/load';
 import PouchDB from 'pouchdb';
-import Erase from 'pouchdb-erase';
+import timeout from 'timeout-then';
 
-PouchDB.plugin(Erase);
+const db = new PouchDB('app', {db : require('memdown')});
 
 const INCREMENT = 'INCREMENT';
 const DECREMENT = 'DECREMENT';
 
-const createPersistentStore = compose(persistentStore)(createStore);
+const createPersistentStore = compose(persistentStore(db))(createStore);
 
 const reducer = (state = {x: 0}, action) => {
   switch(action.type) {
@@ -29,27 +29,26 @@ const finalReducer = persistentReducer(reducer);
 test('should persist store state', function (t) {
     t.plan(2);
 
-    db.erase().then(() => {
-      let store = createPersistentStore(finalReducer);
-      console.log('loading');
+    let store = createPersistentStore(finalReducer);
+    console.log('loading');
 
-      setTimeout(() => {
-        load(db)(reducer.name).then(doc => {
-          console.log('testing',store.getState().x, doc.state.x);
-          t.equal(store.getState().x, doc.state.x);
-        }).then(() => {
-          console.log('incrementing');
-          store.dispatch({
-            type: INCREMENT
-          });
+    timeout(1000)
+    .then(() => load(db)(reducer.name))
+    .then(doc => {
+      console.log('testing',store.getState().x, doc.state.x);
+      t.equal(store.getState().x, doc.state.x);
+    })
+    .then(() => {
+      console.log('incrementing');
+      store.dispatch({
+        type: INCREMENT
+      });
 
-          setTimeout(() => {
-            load(db)(reducer.name).then(doc => {
-              console.log('testing moar',store.getState().x, doc.state.x);
-              t.equal(store.getState().x, doc.state.x);
-            });
-          }, 1000);
-        });
-      }, 1000);
-    }).catch(e => {console.error(e)});
+      return timeout(1000)
+    })
+    .then(() => load(db)(reducer.name))
+    .then(doc => {
+      console.log('testing moar',store.getState().x, doc.state.x);
+      t.equal(store.getState().x, doc.state.x);
+    });
 });

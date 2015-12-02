@@ -1,6 +1,3 @@
-/* global window */
-
-import PouchDB from 'pouchdb';
 import equal from 'deep-equal';
 import 'array.from';
 import save from './save';
@@ -8,12 +5,13 @@ import save from './save';
 export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
 export const INIT = '@@redux-pouchdb/INIT';
 
-export const db = new PouchDB('app');
-
-const saveReducer = save(db);
+let saveReducer;
 let isInitialized = false;
-export const persistentStore = storeCreator => (reducer, initialState) => {
+export const persistentStore = db => storeCreator => (reducer, initialState) => {
+
   const store = storeCreator(reducer, initialState);
+
+  saveReducer = save(db);
 
   const setReducer = doc => {
     const { _id, _rev, state } = doc;
@@ -84,13 +82,10 @@ export const persistentReducer = reducer => {
       lastState = reducedState;
 
       console.log('lets save!');
+      console.log(typeof reducer.name);
       saveReducer(reducer.name, reducedState);
     }
 
     return reducedState;
   };
 };
-
-if (typeof window !== 'undefined') {
-  window.PouchDB = db;
-}

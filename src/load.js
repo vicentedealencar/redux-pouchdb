@@ -7,10 +7,7 @@ export default db => _id => {
   }).catch(err => {
     if (err.status === 404) {
       console.log(404);
-      return db.put({_id: _id}).then(() => {
-        console.log('new');
-        return db.get(_id);
-      });
+      return {_id: _id};
     } else {
       throw err;
     }

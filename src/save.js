@@ -3,9 +3,12 @@ import load from './load';
 const unpersistedQueue = {};
 let isUpdating = {};
 
-export default (db) => {
+export default db => {
+  const loadReducer = load(db);
+
   const saveReducer = (reducerName, reducerState) => {
     if (isUpdating[reducerName]) {
+      console.log('unpersisted enqueue', unpersistedQueue, reducerState);
       //enqueue promise
       unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || [];
       unpersistedQueue[reducerName].push(reducerState);
@@ -14,9 +17,10 @@ export default (db) => {
     }
 
     isUpdating[reducerName] = true;
-    console.log('isUpdating:', reducerName)
+    console.log('isUpdating:', reducerName, typeof reducerName)
 
-    return load(db)(reducerName).then(doc => {
+    return loadReducer(reducerName).then(doc => {
+      console.log('after load');
       const newDoc = {
         ...doc
       };
@@ -43,6 +47,7 @@ export default (db) => {
       isUpdating[reducerName] = false;
       console.log('hasUpdated:', reducerName)
     }).then(() => {
+      console.log('unpersistedQueue', unpersistedQueue);
       if (unpersistedQueue[reducerName]) {
         const next = unpersistedQueue[reducerName].shift();
         console.log('next', reducerName, next);

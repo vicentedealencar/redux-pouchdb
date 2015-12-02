@@ -13,6 +13,8 @@ It is very simple:
 ``` js
 import { persistentStore } from 'redux-pouchdb';
 
+const db = new PouchDB('dbname');
+
 //optional
 const applyMiddlewares = applyMiddleware(
   thunkMiddleware,
@@ -21,7 +23,7 @@ const applyMiddlewares = applyMiddleware(
 
 const createStoreWithMiddleware = compose(
   applyMiddlewares,
-  persistentStore,
+  persistentStore(db),
   createStore);
 
 const store = createStoreWithMiddleware(reducer, initialState);
