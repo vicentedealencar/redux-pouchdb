@@ -10,6 +10,8 @@ It is very simple:
 
 ### `persistentStore`
 
+This store enhancer should be composed with yours in order to initialize
+
 ``` js
 import { persistentStore } from 'redux-pouchdb';
 
@@ -31,19 +33,36 @@ const store = createStoreWithMiddleware(reducer, initialState);
 
 ### `persistentReducer`
 
+The reducers you wish to persist should be enhanced with this higher order reducer.
+
 ``` js
 import { persistentReducer } from 'redux-pouchdb';
 
-function counter(state = 0, action) {
-  switch (action.type) {
-  case INCREMENT_COUNTER:
-    return state + 1;
-  case DECREMENT_COUNTER:
-    return state - 1;
+const counter = (state = {count: 0}, action) => {
+  switch(action.type) {
+  case INCREMENT:
+  console.log(state.count + 1);
+    return { count: state.count + 1 };
+  case DECREMENT:
+    return { count: state.count - 1 };
   default:
     return state;
   }
-}
+};
 
 export default persistentReducer(counter);
 ```
+
+## Caveat
+
+The current behavior is to have a document relative to the reducer that looks like:
+
+``` js
+{
+  _id: 'reducerName', // the name the reducer function
+  state: {}|[], // the state of the reducer
+  _rev: '' // pouchdb keeps track of the revisions
+}
+```
+
+Notice that if your reducer actually returns an array, and you want your elements to be stored in separate documents of a specific bucket, this is not yet supported.
