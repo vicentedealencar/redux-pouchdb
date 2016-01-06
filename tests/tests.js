@@ -10,7 +10,7 @@ const db = new PouchDB('app', {db : require('memdown')});
 const INCREMENT = 'INCREMENT';
 const DECREMENT = 'DECREMENT';
 
-const createPersistentStore = compose(persistentStore(db))(createStore);
+const createPersistentStore = compose(persistentStore)(createStore);
 
 const reducer = (state = {x: 0}, action) => {
   switch(action.type) {
@@ -23,18 +23,20 @@ const reducer = (state = {x: 0}, action) => {
     return state;
   }
 };
-
-const finalReducer = persistentReducer(reducer);
+const reducerName = 'counter';
+const finalReducer = persistentReducer(db, reducerName)(reducer);
 
 test('should persist store state', function (t) {
     t.plan(2);
 
     let store = createPersistentStore(finalReducer);
-    console.log('loading');
+    console.log('store created');
 
-    timeout(1000)
-    .then(() => load(db)(reducer.name))
+    timeout(3000)
+    .then(() => load(db)(reducerName))
     .then(doc => {
+      console.log('state',store.getState());
+      console.log('doc',doc);
       console.log('testing',store.getState().x, doc.state.x);
       t.equal(store.getState().x, doc.state.x);
     })
@@ -46,7 +48,7 @@ test('should persist store state', function (t) {
 
       return timeout(1000)
     })
-    .then(() => load(db)(reducer.name))
+    .then(() => load(db)(reducerName))
     .then(doc => {
       console.log('testing moar',store.getState().x, doc.state.x);
       t.equal(store.getState().x, doc.state.x);

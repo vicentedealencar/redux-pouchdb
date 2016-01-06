@@ -3,10 +3,10 @@ import load from './load';
 const unpersistedQueue = {};
 let isUpdating = {};
 
-export default db => {
+export default (db, reducerName) => {
   const loadReducer = load(db);
 
-  const saveReducer = (reducerName, reducerState) => {
+  const saveReducer = reducerState => {
     if (isUpdating[reducerName]) {
       console.log('unpersisted enqueue', unpersistedQueue, reducerState);
       //enqueue promise
@@ -54,7 +54,7 @@ export default db => {
 
         return saveReducer(next);
       }
-    }).catch(console.log.bind(console));
+    }).catch(console.error.bind(console));
   };
 
   return saveReducer;

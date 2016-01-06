@@ -5,30 +5,38 @@ import save from './save';
 export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
 export const INIT = '@@redux-pouchdb/INIT';
 
-let saveReducer;
-let isInitialized = false;
-export const persistentStore = db => storeCreator => (reducer, initialState) => {
+let store;
+let isInitialized = {};
+export const persistentStore = storeCreator => (reducer, initialState) => {
 
-  const store = storeCreator(reducer, initialState);
+  store = storeCreator(reducer, initialState);
 
-  saveReducer = save(db);
+  return store;
+};
+
+export const persistentReducer = (db, reducerName) => reducer => {
+  let lastState;
+
+  const saveReducer = save(db, reducerName);
 
   const setReducer = doc => {
     const { _id, _rev, state } = doc;
 
     store.dispatch({
       type: SET_REDUCER,
-      reducer: _id,
+      reducer: reducerName,//_id,
       state,
       _rev
     });
   };
 
   db.allDocs({include_docs: true}).then(res => {
-    isInitialized = true;
+    isInitialized[reducerName] = true;
     console.log('initialize');
 
-    const promises = res.rows.map(row => setReducer(row.doc));
+    const promises = res.rows.map(row => {
+      return setReducer(row.doc);
+    });
     return Promise.all(promises);
   }).then(() => {
     store.dispatch({
@@ -42,7 +50,7 @@ export const persistentStore = db => storeCreator => (reducer, initialState) => 
     }).on('change', change => {
       console.log('change');
       console.log(change);
-      console.log('!equal SET_REDUCER', change.doc.state, store.getState());
+      console.log('!equal will SET_REDUCER', change.doc.state, store.getState());
 
       const storeState = store.getState();
 
@@ -53,21 +61,15 @@ export const persistentStore = db => storeCreator => (reducer, initialState) => 
         }
       } else {
         console.log('saveReducer');
-        saveReducer(change.doc._id, store.getState());
+        saveReducer(store.getState());
       }
     });
-  }).catch(console.log.bind(console));
-
-  return store;
-};
-
-export const persistentReducer = reducer => {
-  let lastState;
+  }).catch(console.error.bind(console));
 
   return (state, action) => {
     console.log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
-        action.reducer === reducer.name &&
+        action.reducer === reducerName &&
         action.state) {
       console.log('short-circuit');
 
@@ -78,12 +80,12 @@ export const persistentReducer = reducer => {
     const reducedState = reducer(state, action);
     console.log('reducedState', reducedState);
 
-    if (isInitialized && !equal(reducedState,lastState)) {
+    if (isInitialized[reducerName] && !equal(reducedState,lastState)) {
       lastState = reducedState;
 
       console.log('lets save!');
-      console.log(typeof reducer.name);
-      saveReducer(reducer.name, reducedState);
+      console.log(typeof reducerName);
+      saveReducer(reducedState);
     }
 
     return reducedState;
