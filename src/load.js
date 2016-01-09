@@ -1,15 +1,17 @@
+import log from './log';
+
 export default db => _id => {
-  console.log('go load', _id);
+  log('go load', _id);
   return db.get(_id).then(x => {
-    console.log('loaded:', _id);
-    console.log(x);
+    log('loaded:', _id);
+    log(x);
     return x;
   }).catch(err => {
     if (err.status === 404) {
-      console.log(404);
+      log(404);
       return {_id: _id};
     } else {
       throw err;
     }
-  }).catch(console.log.bind(console));
+  }).catch(log.bind(console));
 };

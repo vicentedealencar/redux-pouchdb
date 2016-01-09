@@ -1,6 +1,7 @@
 import equal from 'deep-equal';
 import 'array.from';
 import save from './save';
+import log from './log';
 
 export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
 export const INIT = '@@redux-pouchdb/INIT';
@@ -32,7 +33,7 @@ export const persistentReducer = (db, reducerName) => reducer => {
 
   db.allDocs({include_docs: true}).then(res => {
     isInitialized[reducerName] = true;
-    console.log('initialize');
+    log('initialize');
 
     const promises = res.rows.map(row => {
       return setReducer(row.doc);
@@ -64,43 +65,43 @@ export const persistentReducer = (db, reducerName) => reducer => {
       live: true,
       since: 'now'
     }).on('change', change => {
-      console.log('change');
-      console.log(change);
-      console.log('!equal will SET_REDUCER', change.doc.state, store.getState());
+      log('change');
+      log(change);
+      log('!equal will SET_REDUCER', change.doc.state, store.getState());
 
       const storeState = store.getState();
 
       if (change.doc.state) {
         if (!equal(change.doc.state, storeState)) {
-          console.log('setReducert');
+          log('setReducert');
           setReducer(change.doc);
         }
       } else {
-        console.log('saveReducer');
+        log('saveReducer');
         saveReducer(store.getState());
       }
     });
   }).catch(console.error.bind(console));
 
   return (state, action) => {
-    console.log('reduce this', state, action);
+    log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
         action.reducer === reducerName &&
         action.state) {
-      console.log('short-circuit');
+      log('short-circuit');
 
       lastState = action.state;
       return reducer(action.state, action);
     }
 
     const reducedState = reducer(state, action);
-    console.log('reducedState', reducedState);
+    log('reducedState', reducedState);
 
     if (isInitialized[reducerName] && !equal(reducedState,lastState)) {
       lastState = reducedState;
 
-      console.log('lets save!');
-      console.log(typeof reducerName);
+      log('lets save!');
+      log(typeof reducerName);
       saveReducer(reducedState);
     }
 
