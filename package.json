@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "prepublish": "rimraf lib && babel src --out-dir lib",
-    "test": "babel-tape-runner tests/*.js"
+    "test": "mocha --require tests/require-babel-es7 tests/*.js"
   },
   "files": [
     "lib/",
@@ -34,12 +34,12 @@
   "devDependencies": {
     "babel": "^6.1.18",
     "babel-core": "^6.2.1",
-    "babel-tape-runner": "^1.3.0",
     "memdown": "^1.1.0",
+    "mocha": "^2.3.4",
     "pouchdb": "^5.1.0",
     "redux": "^3.0.4",
     "rimraf": "^2.4.4",
-    "tape": "^4.2.2",
+    "should": "^8.0.2",
     "timeout-then": "^1.0.0"
   },
   "peerDependencies": {

@@ -39,6 +39,22 @@ export const persistentReducer = (db, reducerName) => reducer => {
     });
     return Promise.all(promises);
   }).then(() => {
+    return new Promise((resolve, reject) => {
+      let tries = 0;
+      const waitStore = () => {
+        tries++;
+        if (store) {
+          resolve();
+        } else if (tries > 100) {
+          reject('no store after a while');
+        } else {
+          setTimeout(waitStore, 100);
+        }
+      };
+
+      waitStore();
+    })
+  }).then(() => {
     store.dispatch({
       type: INIT
     });
