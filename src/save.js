@@ -1,6 +1,4 @@
 import load from './load';
-import log from './log';
-
 
 const unpersistedQueue = {};
 let isUpdating = {};
@@ -10,7 +8,6 @@ export default (db, reducerName) => {
 
   const saveReducer = reducerState => {
     if (isUpdating[reducerName]) {
-      log('unpersisted enqueue', unpersistedQueue, reducerState);
       //enqueue promise
       unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || [];
       unpersistedQueue[reducerName].push(reducerState);
@@ -19,10 +16,8 @@ export default (db, reducerName) => {
     }
 
     isUpdating[reducerName] = true;
-    log('isUpdating:', reducerName, typeof reducerName)
 
     return loadReducer(reducerName).then(doc => {
-      log('after load');
       const newDoc = {
         ...doc
       };
@@ -41,18 +36,11 @@ export default (db, reducerName) => {
 
       return newDoc;
     }).then(newDoc => {
-      log('try put:', newDoc._id);
-      log(newDoc);
-
       return db.put(newDoc);
     }).then(() => {
       isUpdating[reducerName] = false;
-      log('hasUpdated:', reducerName)
-    }).then(() => {
-      log('unpersistedQueue', unpersistedQueue);
       if (unpersistedQueue[reducerName]) {
         const next = unpersistedQueue[reducerName].shift();
-        log('next', reducerName, next);
 
         return saveReducer(next);
       }

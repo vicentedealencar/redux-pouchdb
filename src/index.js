@@ -1,7 +1,6 @@
 import equal from 'deep-equal';
 import 'array.from';
 import save from './save';
-import log from './log';
 
 export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
 export const INIT = '@@redux-pouchdb/INIT';
@@ -33,7 +32,6 @@ export const persistentReducer = (db, reducerName) => reducer => {
 
   db.allDocs({include_docs: true}).then(res => {
     isInitialized[reducerName] = true;
-    log('initialize');
 
     const promises = res.rows.map(row => {
       return setReducer(row.doc);
@@ -65,43 +63,30 @@ export const persistentReducer = (db, reducerName) => reducer => {
       live: true,
       since: 'now'
     }).on('change', change => {
-      log('change');
-      log(change);
-      log('!equal will SET_REDUCER', change.doc.state, store.getState());
-
       const storeState = store.getState();
 
       if (change.doc.state) {
         if (!equal(change.doc.state, storeState)) {
-          log('setReducert');
           setReducer(change.doc);
         }
       } else {
-        log('saveReducer');
         saveReducer(store.getState());
       }
     });
   }).catch(console.error.bind(console));
 
   return (state, action) => {
-    log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
         action.reducer === reducerName &&
         action.state) {
-      log('short-circuit');
-
       lastState = action.state;
       return reducer(action.state, action);
     }
 
     const reducedState = reducer(state, action);
-    log('reducedState', reducedState);
 
     if (isInitialized[reducerName] && !equal(reducedState,lastState)) {
       lastState = reducedState;
-
-      log('lets save!');
-      log(typeof reducerName);
       saveReducer(reducedState);
     }
 
