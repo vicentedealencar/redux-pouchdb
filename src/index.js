@@ -26,7 +26,6 @@ export const persistentStore = db => storeCreator => (reducer, initialState) => 
 
   db.allDocs({include_docs: true}).then(res => {
     isInitialized = true;
-    console.log('initialize');
 
     const promises = res.rows.map(row => setReducer(row.doc));
     return Promise.all(promises);
@@ -40,23 +39,17 @@ export const persistentStore = db => storeCreator => (reducer, initialState) => 
       live: true,
       since: 'now'
     }).on('change', change => {
-      console.log('change');
-      console.log(change);
-      console.log('!equal SET_REDUCER', change.doc.state, store.getState());
-
       const storeState = store.getState();
 
       if (change.doc.state) {
         if (!equal(change.doc.state, storeState)) {
-          console.log('setReducert');
           setReducer(change.doc);
         }
       } else {
-        console.log('saveReducer');
         saveReducer(change.doc._id, store.getState());
       }
     });
-  }).catch(console.log.bind(console));
+  }).catch(console.error.bind(console));
 
   return store;
 };
@@ -65,24 +58,19 @@ export const persistentReducer = reducer => {
   let lastState;
 
   return (state, action) => {
-    console.log('reduce this', state, action);
     if (action.type === SET_REDUCER &&
         action.reducer === reducer.name &&
         action.state) {
-      console.log('short-circuit');
 
       lastState = action.state;
       return reducer(action.state, action);
     }
 
     const reducedState = reducer(state, action);
-    console.log('reducedState', reducedState);
 
     if (isInitialized && !equal(reducedState,lastState)) {
       lastState = reducedState;
 
-      console.log('lets save!');
-      console.log(typeof reducer.name);
       saveReducer(reducer.name, reducedState);
     }
 

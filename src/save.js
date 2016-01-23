@@ -8,7 +8,6 @@ export default db => {
 
   const saveReducer = (reducerName, reducerState) => {
     if (isUpdating[reducerName]) {
-      console.log('unpersisted enqueue', unpersistedQueue, reducerState);
       //enqueue promise
       unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || [];
       unpersistedQueue[reducerName].push(reducerState);
@@ -17,10 +16,8 @@ export default db => {
     }
 
     isUpdating[reducerName] = true;
-    console.log('isUpdating:', reducerName, typeof reducerName)
 
     return loadReducer(reducerName).then(doc => {
-      console.log('after load');
       const newDoc = {
         ...doc
       };
@@ -39,22 +36,15 @@ export default db => {
 
       return newDoc;
     }).then(newDoc => {
-      console.log('try put:', newDoc._id);
-      console.log(newDoc);
-
       return db.put(newDoc);
     }).then(() => {
       isUpdating[reducerName] = false;
-      console.log('hasUpdated:', reducerName)
-    }).then(() => {
-      console.log('unpersistedQueue', unpersistedQueue);
       if (unpersistedQueue[reducerName]) {
         const next = unpersistedQueue[reducerName].shift();
-        console.log('next', reducerName, next);
 
         return saveReducer(next);
       }
-    }).catch(console.log.bind(console));
+    }).catch(console.error.bind(console));
   };
 
   return saveReducer;
