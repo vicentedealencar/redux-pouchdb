@@ -25,8 +25,8 @@ const applyMiddlewares = applyMiddleware(
 
 const createStoreWithMiddleware = compose(
   applyMiddlewares,
-  persistentStore(db),
-  createStore);
+  persistentStore(db)
+)(createStore);
 
 const store = createStoreWithMiddleware(reducer, initialState);
 ```
