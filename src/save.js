@@ -18,9 +18,9 @@ export default db => {
     isUpdating[reducerName] = true;
 
     return loadReducer(reducerName).then(doc => {
-      const newDoc = {
-        ...doc
-      };
+      // TODO use object spread operator when standardized
+      // (see https://github.com/vicentedealencar/redux-pouchdb/issues/5)
+      const newDoc = Object.assign({}, doc);
 
       if (Array.isArray(reducerState)) {
         newDoc.state = [
@@ -28,10 +28,9 @@ export default db => {
           ...reducerState
         ];
       } else {
-        newDoc.state = {
-          ...doc.state,
-          ...reducerState
-        };
+        // TODO use object spread operator when standardized
+        // (see https://github.com/vicentedealencar/redux-pouchdb/issues/5)
+        newDoc.state = Object.assign({}, doc.state, reducerState);
       }
 
       return newDoc;
