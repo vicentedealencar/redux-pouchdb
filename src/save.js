@@ -18,9 +18,8 @@ export default db => {
     isUpdating[reducerName] = true;
 
     return loadReducer(reducerName).then(doc => {
-      const newDoc = {
-        ...doc
-      };
+
+      const newDoc = { ...doc };
 
       if (Array.isArray(reducerState)) {
         newDoc.state = [
