@@ -38,7 +38,8 @@ export default db => {
       return db.put(newDoc);
     }).then(() => {
       isUpdating[reducerName] = false;
-      if (unpersistedQueue[reducerName].length) {
+      if (unpersistedQueue[reducerName] &&
+          unpersistedQueue[reducerName].length) {
         const next = unpersistedQueue[reducerName].shift();
 
         return saveReducer(reducerName, next);
