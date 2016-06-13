@@ -1,6 +1,6 @@
 {
   "name": "redux-pouchdb",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
