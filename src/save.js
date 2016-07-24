@@ -3,7 +3,7 @@ import load from './load';
 const unpersistedQueue = {};
 let isUpdating = {};
 
-export default db => {
+export default (db, madeBy) => {
   const loadReducer = load(db);
 
   const saveReducer = (reducerName, reducerState) => {
@@ -19,20 +19,16 @@ export default db => {
 
     return loadReducer(reducerName).then(doc => {
 
-      const newDoc = { ...doc };
+      const newDoc = { ...doc, madeBy };
 
       if (Array.isArray(reducerState)) {
-        newDoc.state = [
-          ...(doc.state || []),
-          ...reducerState
-        ];
+        newDoc.state = reducerState;
       } else {
         newDoc.state = {
           ...doc.state,
           ...reducerState
         };
       }
-
       return newDoc;
     }).then(newDoc => {
       return db.put(newDoc);
