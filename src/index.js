@@ -60,12 +60,13 @@ export const persistentStore = (db, onChange = []) => storeCreator => (reducer, 
   return store;
 };
 
-export const persistentReducer = reducer => {
+export const persistentReducer = (reducer, name) => {
   let lastState;
+  name = name || reducer.name;
 
   return (state, action) => {
     if (action.type === SET_REDUCER &&
-        action.reducer === reducer.name &&
+        action.reducer === name &&
         action.state) {
 
       lastState = action.state;
@@ -79,7 +80,7 @@ export const persistentReducer = reducer => {
     const reducedState = reducer(state, action);
     if (isInitialized && !equal(reducedState,lastState)) {
       lastState = reducedState;
-      saveReducer(reducer.name, reducedState);
+      saveReducer(name, reducedState);
     }
 
     return reducedState;
