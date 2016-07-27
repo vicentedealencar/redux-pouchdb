@@ -18,17 +18,7 @@ export default (db, madeBy) => {
     isUpdating[reducerName] = true;
 
     return loadReducer(reducerName).then(doc => {
-
-      const newDoc = { ...doc, madeBy };
-
-      if (Array.isArray(reducerState)) {
-        newDoc.state = reducerState;
-      } else {
-        newDoc.state = {
-          ...doc.state,
-          ...reducerState
-        };
-      }
+      const newDoc = { ...doc, madeBy, state: reducerState };
       return newDoc;
     }).then(newDoc => {
       return db.put(newDoc);
