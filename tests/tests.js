@@ -2,10 +2,13 @@ import test from 'tape';
 import { createStore, compose, applyMiddleware } from 'redux';
 import { persistentStore, persistentReducer } from '../src/index';
 import load from '../src/load';
-import PouchDB from 'pouchdb';
+import pdb from 'pouchdb-core';
+import pdbMem from 'pouchdb-adapter-memory';
 import timeout from 'timeout-then';
 
-const db = new PouchDB('app', {db : require('memdown')});
+const PouchDB = pdb.plugin(pdbMem);
+
+const db = new PouchDB('app');
 
 const INCREMENT = 'INCREMENT';
 const DECREMENT = 'DECREMENT';

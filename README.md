@@ -3,8 +3,8 @@
 ## What is going on here?
 
 It is very simple:
-- The [PouchDB](http://pouchdb.com/) database persists the state of the [Redux](rackt.github.io/redux) store every time it changes.
-- An action with type DB_CHANGES is dispatched to the store every time the database syncs.
+- The [PouchDB](http://pouchdb.com/) database persists the state of chosen parts of the [Redux](rackt.github.io/redux) store every time it changes.
+- Your reducers will be passed the state from PouchDB when your app loads and every time a change arrives (if you are syncing with a remote db).
 
 ## Usage
 
@@ -31,6 +31,19 @@ const createStoreWithMiddleware = compose(
 const store = createStoreWithMiddleware(reducer, initialState);
 ```
 
+The `persistentStore` enhancer takes an optional second argument which can be a function or an array of functions which are called whenever changes arrive from the database. These functions are given the document (see the format at the bottom) from PouchDB and any truthy return values will be dispatched to the store. You can use this to set up more complex actions based on new data. If you want to take advantage of any middleware you are also setting up, compose the `persistentStore` before `applyMiddlewares`
+
+```js
+const changeHandler = doc => {
+  // Return thunk based on doc.
+};
+const createStoreWithMiddleware = compose(
+  persistentStore(db, changeHandler),
+  applyMiddlewares
+)(createStore);
+// ...
+```
+
 ### `persistentReducer`
 
 The reducers you wish to persist should be enhanced with this higher order reducer.
@@ -53,13 +66,19 @@ const counter = (state = {count: 0}, action) => {
 export default persistentReducer(counter);
 ```
 
+NOTE: If you plan on minifying your code, or you want to use a name different from the reducer function name, you can pass a second parameter to `persistentReducer`.
+
+```js
+export default persistentReducer(counter, 'counter');
+```
+
 ## Caveat
 
 The current behavior is to have a document relative to the reducer that looks like:
 
 ``` js
 {
-  _id: 'reducerName', // the name the reducer function
+  _id: 'reducerName', // the name of the reducer function
   state: {}|[], // the state of the reducer
   _rev: '' // pouchdb keeps track of the revisions
 }
