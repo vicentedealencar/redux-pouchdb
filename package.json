@@ -1,12 +1,12 @@
 {
   "name": "redux-pouchdb",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
     "build": "rimraf lib && babel src --out-dir lib",
     "prepublish": "npm run build",
-    "test": "babel-tape-runner tests/*.js"
+    "test": "istanbul cover babel-tape-runner tests/*.js"
   },
   "files": [
     "lib/",
@@ -44,8 +44,9 @@
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-stage-0": "^6.5.0",
     "babel-tape-runner": "^2.0.1",
-    "pouchdb-adapter-memory": "^5.4.5",
-    "pouchdb-core": "^5.4.5",
+    "istanbul": "^1.1.0-alpha.1",
+    "pouchdb-adapter-memory": "^6.0.6",
+    "pouchdb-core": "^6.0.6",
     "redux": "^3.5.2",
     "rimraf": "^2.5.3",
     "tape": "^4.6.0",
