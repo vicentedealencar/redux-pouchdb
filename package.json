@@ -1,7 +1,7 @@
 {
-  "name": "redux-pouchdb",
-  "version": "0.1.1",
-  "description": "Sync store state to pouchdb",
+  "name": "samyukti-redux-pouchdb",
+  "version": "0.1.2",
+  "description": "Sync store state to pouchdb.",
   "main": "lib/index.js",
   "scripts": {
     "build": "rimraf lib && babel src --out-dir lib",
@@ -15,7 +15,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vicentedealencar/redux-pouchdb"
+    "url": "https://github.com/rahulraghavankklm/redux-pouchdb"
   },
   "keywords": [
     "redux",
@@ -35,21 +35,21 @@
     ]
   },
   "dependencies": {
-    "array.from": "^1.0.2",
+    "array.from": "^1.0.3",
     "deep-equal": "^1.0.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-core": "^6.11.4",
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-stage-0": "^6.5.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
     "babel-tape-runner": "^2.0.1",
     "istanbul": "^1.1.0-alpha.1",
-    "pouchdb-adapter-memory": "^6.0.6",
-    "pouchdb-core": "^6.0.6",
-    "redux": "^3.5.2",
-    "rimraf": "^2.5.3",
-    "tape": "^4.6.0",
-    "timeout-then": "^1.0.0"
+    "pouchdb-adapter-memory": "^6.4.3",
+    "pouchdb-core": "^6.4.3",
+    "redux": "^3.7.2",
+    "rimraf": "^2.6.2",
+    "tape": "^4.9.0",
+    "timeout-then": "^1.1.0"
   }
 }
