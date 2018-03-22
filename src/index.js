@@ -62,7 +62,7 @@ export const persistentStore = (db, onChange = []) => storeCreator => (reducer, 
 
 export const persistentReducer = (reducer, name) => {
   let lastState;
-  name = name || reducer.name;
+  name = name || reducer.name || Math.random().toString()
 
   return (state, action) => {
     if (action.type === SET_REDUCER &&
