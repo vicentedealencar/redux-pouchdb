@@ -1,51 +1,50 @@
-import load from './load';
+import load from './load'
 
-const unpersistedQueue = {};
-let isUpdating = {};
+const unpersistedQueue = {}
+let isUpdating = {}
 
 export default (db, reducerName) => {
-  const loadReducer = load(db);
+  const loadReducer = load(db)
 
-  const saveReducer = reducerState => {
+  const saveReducer = async reducerState => {
     if (isUpdating[reducerName]) {
       //enqueue promise
-      unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || [];
-      unpersistedQueue[reducerName].push(reducerState);
+      unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || []
+      unpersistedQueue[reducerName].push(reducerState)
 
-      return Promise.resolve();
+      return Promise.resolve()
     }
 
-    isUpdating[reducerName] = true;
+    isUpdating[reducerName] = true
 
-    return loadReducer(reducerName).then(doc => {
+    try {
+      const doc = await loadReducer(reducerName)
+
       const newDoc = {
         ...doc
-      };
+      }
 
       if (Array.isArray(reducerState)) {
-        newDoc.state = [
-          ...(doc.state || []),
-          ...reducerState
-        ];
+        newDoc.state = [...(doc.state || []), ...reducerState]
       } else {
         newDoc.state = {
           ...doc.state,
           ...reducerState
-        };
+        }
       }
 
-      return newDoc;
-    }).then(newDoc => {
-      return db.put(newDoc);
-    }).then(() => {
-      isUpdating[reducerName] = false;
+      await db.put(newDoc)
+
+      isUpdating[reducerName] = false
       if (unpersistedQueue[reducerName]) {
-        const next = unpersistedQueue[reducerName].shift();
+        const next = unpersistedQueue[reducerName].shift()
 
-        return saveReducer(next);
+        return saveReducer(next)
       }
-    }).catch(console.error.bind(console));
-  };
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
-  return saveReducer;
-};
+  return saveReducer
+}

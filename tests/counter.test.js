@@ -6,27 +6,27 @@ import PouchDB from 'pouchdb'
 import timeout from 'timeout-then'
 
 describe('redux-pouchdb tests', () => {
-  const db = new PouchDB('app', {db : require('memdown')})
+  const db = new PouchDB('app', { db: require('memdown') })
 
   const INCREMENT = 'INCREMENT'
   const DECREMENT = 'DECREMENT'
 
   const createPersistentStore = compose(persistentStore)(createStore)
 
-  const reducer = (state = {x: 0}, action) => {
-    switch(action.type) {
-    case INCREMENT:
-      return { x: state.x + 1 }
-    case DECREMENT:
-      return { x: state.x - 1 }
-    default:
-      return state
+  const reducer = (state = { x: 0 }, action) => {
+    switch (action.type) {
+      case INCREMENT:
+        return { x: state.x + 1 }
+      case DECREMENT:
+        return { x: state.x - 1 }
+      default:
+        return state
     }
   }
   const reducerName = 'counter'
   const finalReducer = persistentReducer(db, reducerName)(reducer)
 
-  it('should persist store state', async (done) => {
+  it('should persist store state', async done => {
     let store = createPersistentStore(finalReducer)
 
     await timeout(300)

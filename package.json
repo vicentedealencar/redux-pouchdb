@@ -4,6 +4,7 @@
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
+    "format": "prettier --write --no-semi --single-quote src/* tests/*",
     "prepublish": "rimraf lib && babel src --out-dir lib",
     "test": "cross-env BABEL_ENV=testing jest"
   },
@@ -29,7 +30,8 @@
   "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
   "dependencies": {
     "array.from": "^0.2.0",
-    "deep-equal": "^1.0.1"
+    "deep-equal": "^1.0.1",
+    "timeout-then": "^1.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -39,10 +41,10 @@
     "jest": "^23.2.0",
     "memdown": "^1.1.0",
     "pouchdb": "^5.1.0",
+    "prettier": "^1.13.7",
     "redux": "^3.0.4",
     "rimraf": "^2.4.4",
-    "should": "^8.0.2",
-    "timeout-then": "^1.0.0"
+    "should": "^8.0.2"
   },
   "peerDependencies": {
     "pouchdb": "^5.0.0"
