@@ -47,6 +47,7 @@
     "should": "^8.0.2"
   },
   "peerDependencies": {
-    "pouchdb": "^5.0.0"
+    "pouchdb": "*",
+    "redux": "*"
   }
 }

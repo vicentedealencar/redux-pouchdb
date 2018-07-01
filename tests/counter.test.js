@@ -29,7 +29,7 @@ describe('redux-pouchdb tests', () => {
   it('should persist store state', async done => {
     let store = createPersistentStore(finalReducer)
 
-    await timeout(300)
+    await timeout(500)
 
     const doc = await load(db)(reducerName)
 
@@ -42,7 +42,7 @@ describe('redux-pouchdb tests', () => {
       type: INCREMENT
     })
 
-    await timeout(300)
+    await timeout(500)
 
     const doc2 = await load(db)(reducerName)
 

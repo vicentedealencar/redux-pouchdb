@@ -41,7 +41,6 @@ import { persistentReducer } from 'redux-pouchdb';
 const counter = (state = {count: 0}, action) => {
   switch(action.type) {
   case INCREMENT:
-  console.log(state.count + 1);
     return { count: state.count + 1 };
   case DECREMENT:
     return { count: state.count - 1 };
