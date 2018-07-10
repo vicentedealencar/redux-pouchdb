@@ -40,7 +40,7 @@ const initializePersistentArrayReducer = async (
   saveArrayReducer
 ) => {
   const updateArrayReducer = doc => {
-    console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
+    // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
     store.dispatch({
       type: UPDATE_ARRAY_REDUCER,
       reducer: reducerName,
@@ -87,7 +87,7 @@ const initializePersistentObjectReducer = async (
 ) => {
   const setReducer = doc => {
     const { _id, _rev, state } = doc
-    console.log('setReducer', doc)
+    // console.log('setReducer', doc)
     store.dispatch({
       type: SET_OBJECT_REDUCER,
       reducer: reducerName, //_id,
@@ -169,11 +169,11 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
 
     // console.log('lastState', lastState, 'reducedState', reducedState)
     waitInitialization(reducerName).then(() => {
-      console.log(
-        'will save',
-        isInitialized[reducerName],
-        !equal(reducedState, lastState)
-      )
+      // console.log(
+      //   'will save',
+      //   isInitialized[reducerName],
+      //   !equal(reducedState, lastState)
+      // )
       if (isInitialized[reducerName] && !equal(reducedState, lastState)) {
         lastState = reducedState
         saveArrayReducer(reducedState)

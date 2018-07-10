@@ -5,7 +5,7 @@ const unpersistedQueue = {}
 let isUpdating = {}
 
 export const isArrayUpToDate = reducerName => {
-  console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
+  // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
   return !isUpdating[reducerName] &&
   (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
 }
@@ -13,7 +13,7 @@ export default (db, reducerName) => {
   const loadArrayReducer = loadArray(db)
 
   const saveReducer = async reducerState => {
-    console.log('save?', !isUpdating[reducerName], reducerState)
+    // console.log('save?', !isUpdating[reducerName], reducerState)
     if (isUpdating[reducerName]) {
       //enqueue promise
       unpersistedQueue[reducerName] = (
@@ -47,7 +47,7 @@ export default (db, reducerName) => {
         .filter(x => x)
 
       if (newDocs.length) {
-        console.log('saving docs', newDocs)
+        // console.log('saving docs', newDocs)
         await db.bulkDocs(newDocs)
       }
       // await Promise.all(
@@ -67,7 +67,7 @@ export default (db, reducerName) => {
       // TODO
       // delete removed docs
 
-      console.log('IS UP TO DATE', reducerName, isArrayUpToDate(reducerName))
+      // console.log('IS UP TO DATE', reducerName, isArrayUpToDate(reducerName))
       isUpdating[reducerName] = false
 
       if (unpersistedQueue[reducerName]) {
