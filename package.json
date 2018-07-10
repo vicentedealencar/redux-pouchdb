@@ -4,7 +4,7 @@
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
-    "format": "prettier --write --no-semi --single-quote src/* tests/*",
+    "format": "prettier --write --no-semi --single-quote src/** tests/**",
     "prepublish": "rimraf lib && babel src --out-dir lib",
     "test": "cross-env BABEL_ENV=testing jest"
   },

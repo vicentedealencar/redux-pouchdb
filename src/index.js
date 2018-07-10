@@ -1,8 +1,9 @@
 import equal from 'deep-equal'
 import 'array.from'
-import timeout from 'timeout-then'
-import save from './save'
-import saveArray from './saveArray'
+// import timeout from 'timeout-then'
+import waitAvailability from './utils/waitAvailability'
+import save, { isUpToDate } from './utils/save'
+import saveArray, { isArrayUpToDate } from './utils/saveArray'
 
 export const SET_OBJECT_REDUCER = '@@redux-pouchdb/SET_OBJECT_REDUCER'
 export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
@@ -10,34 +11,36 @@ export const INIT = '@@redux-pouchdb/INIT'
 
 let store
 let isInitialized = {}
+
+export const waitInitialization = reducerName =>
+  waitAvailability(
+    () =>
+      store &&
+      isInitialized[reducerName] &&
+      isUpToDate(reducerName) &&
+      isArrayUpToDate(reducerName)
+  )
+
+export const waitPersistence = reducerName =>
+  waitAvailability(
+    () => isUpToDate(reducerName) && isArrayUpToDate(reducerName)
+  )
+
+// Store enhancer
 export const persistentStore = storeCreator => (reducer, initialState) => {
   store = storeCreator(reducer, initialState)
 
   return store
 }
 
-const waitStore = () => {
-  let tries = 0
-  const checkStore = async () => {
-    tries++
-    if (store) {
-      return
-    } else if (tries > 1000) {
-      throw new Error('no store after a while')
-    } else {
-      await timeout(100)
-      return checkStore()
-    }
-  }
-  return checkStore()
-}
-
+//service
 const initializePersistentArrayReducer = async (
   db,
   reducerName,
   saveArrayReducer
 ) => {
   const updateArrayReducer = doc => {
+    console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
     store.dispatch({
       type: UPDATE_ARRAY_REDUCER,
       reducer: reducerName,
@@ -46,9 +49,7 @@ const initializePersistentArrayReducer = async (
   }
 
   try {
-    isInitialized[reducerName] = true
-
-    await waitStore()
+    await waitAvailability(() => store)
 
     const res = await db.allDocs({ include_docs: true })
     await Promise.all(res.rows.map(row => updateArrayReducer(row.doc)))
@@ -63,6 +64,7 @@ const initializePersistentArrayReducer = async (
       live: true,
       since: 'now'
     }).on('change', change => {
+      // console.log('change', change)
       if (change.doc.state) {
         updateArrayReducer(change.doc)
       } else {
@@ -72,8 +74,12 @@ const initializePersistentArrayReducer = async (
   } catch (err) {
     console.error(err)
   }
+
+  isInitialized[reducerName] = true
+  // console.log(reducerName, 'isInitialized')
 }
 
+// service
 const initializePersistentObjectReducer = async (
   db,
   reducerName,
@@ -81,7 +87,7 @@ const initializePersistentObjectReducer = async (
 ) => {
   const setReducer = doc => {
     const { _id, _rev, state } = doc
-
+    console.log('setReducer', doc)
     store.dispatch({
       type: SET_OBJECT_REDUCER,
       reducer: reducerName, //_id,
@@ -93,12 +99,11 @@ const initializePersistentObjectReducer = async (
   try {
     const res = await db.allDocs({ include_docs: true })
 
-    isInitialized[reducerName] = true
+    await waitAvailability(() => store)
 
     await Promise.all(res.rows.map(row => setReducer(row.doc)))
 
-    await waitStore()
-
+    isInitialized[reducerName] = true
     store.dispatch({
       type: INIT,
       reducerName
@@ -110,6 +115,8 @@ const initializePersistentObjectReducer = async (
       since: 'now'
     }).on('change', change => {
       const storeState = store.getState()
+
+      // console.log('doc change', change)
 
       if (change.doc.state) {
         if (!equal(change.doc.state, storeState)) {
@@ -124,11 +131,13 @@ const initializePersistentObjectReducer = async (
   }
 }
 
+// Higher order reducer
 export const persistentReducer = (db, reducerName, isArray) =>
   isArray
     ? persistentArrayReducer(db, reducerName)
     : persistentObjectReducer(db, reducerName)
 
+// Higher order reducer
 const persistentArrayReducer = (db, reducerName) => reducer => {
   let lastState
   isInitialized[reducerName] = false
@@ -137,6 +146,7 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
   initializePersistentArrayReducer(db, reducerName, saveArrayReducer)
 
   return (state, action) => {
+    // console.log('reducer', action.type, state)
     if (
       action.type === UPDATE_ARRAY_REDUCER &&
       action.reducer === reducerName &&
@@ -157,15 +167,24 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
 
     const reducedState = reducer(state, action)
 
-    if (isInitialized[reducerName] && !equal(reducedState, lastState)) {
-      lastState = reducedState
-      saveArrayReducer(reducedState)
-    }
+    // console.log('lastState', lastState, 'reducedState', reducedState)
+    waitInitialization(reducerName).then(() => {
+      console.log(
+        'will save',
+        isInitialized[reducerName],
+        !equal(reducedState, lastState)
+      )
+      if (isInitialized[reducerName] && !equal(reducedState, lastState)) {
+        lastState = reducedState
+        saveArrayReducer(reducedState)
+      }
+    })
 
     return reducedState
   }
 }
 
+// Higher order reducer
 const persistentObjectReducer = (db, reducerName) => reducer => {
   let lastState
   isInitialized[reducerName] = false

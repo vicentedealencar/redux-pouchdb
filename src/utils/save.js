@@ -1,7 +1,11 @@
 import load from './load'
 
 const unpersistedQueue = {}
-let isUpdating = {}
+const isUpdating = {}
+
+export const isUpToDate = reducerName =>
+  !isUpdating[reducerName] &&
+  (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
 
 export default (db, reducerName) => {
   const loadReducer = load(db)
