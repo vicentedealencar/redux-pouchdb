@@ -1,13 +1,44 @@
 import equal from 'deep-equal'
+import {
+  uniqWith,
+  omit,
+  without,
+  intersection,
+  differenceWith,
+  flatten
+} from 'ramda'
 import loadArray from './loadArray'
 
 const unpersistedQueue = {}
 let isUpdating = {}
 
+const omitDocProps = omit(['_id', '_rev', '_deleted'])
+const equalsOmittingDocProps = (curr, old) =>
+  equal(omitDocProps(curr), omitDocProps(old))
+// const isSame = (a, b) =>
+// a === b ||
+// equal(a, b) ||
+// (a && b && ((a._id && b._id && a._id === b._id) ||
+//   omitDocProps(a) === omitDocProps(b)))
+const uniq = uniqWith(equalsOmittingDocProps)
+// const getInsertedItems = differenceWith(isSame)
+// const getUpdatedItems = (curr, old) => without(omitDocProps(curr),
+//   intersection(
+//     omitDocProps(curr),
+//     omitDocProps(old)))//.map(newDoc => )
+// const getDeletedItems = (curr, old) => differenceWith(isSame, old, curr)
+// const getDifference = (curr, old) => flatten(
+//   getInsertedItems(curr, old),
+//   // getUpdatedItems(curr,old)
+// )
+const differenceOmittingDocProps = differenceWith(equalsOmittingDocProps)
+
 export const isArrayUpToDate = reducerName => {
   // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
-  return !isUpdating[reducerName] &&
-  (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+  return (
+    !isUpdating[reducerName] &&
+    (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+  )
 }
 export default (db, reducerName) => {
   const loadArrayReducer = loadArray(db)
@@ -15,10 +46,19 @@ export default (db, reducerName) => {
   const saveReducer = async reducerState => {
     // console.log('save?', !isUpdating[reducerName], reducerState)
     if (isUpdating[reducerName]) {
-      //enqueue promise
-      unpersistedQueue[reducerName] = (
-        unpersistedQueue[reducerName] || []
-      ).concat(reducerState)
+      const docs = await loadArrayReducer(reducerName)
+      const diff = differenceOmittingDocProps(reducerState, docs)
+      if (diff.length) {
+        //enqueue promise
+        unpersistedQueue[reducerName] = uniq(
+          diff.concat(unpersistedQueue[reducerName])
+        )
+        console.log(
+          'enqueue',
+          unpersistedQueue[reducerName].length,
+          unpersistedQueue[reducerName]
+        )
+      }
 
       return
     }
@@ -31,41 +71,14 @@ export default (db, reducerName) => {
         throw new Error(`State of ${reducerName} must be an array`)
       }
       const docs = await loadArrayReducer(reducerName)
-      // console.log('load to save docs', docs)
+      // console.log('load to save docs', docs.length)
 
-      const newDocs = reducerState
-        .map(item => {
-          const same = docs.filter(({ _id, _rev, _deleted, ...doc }) =>
-            equal(item, doc)
-          )
-          return same[0]
-            ? null // ignore unchanged docs
-            : docs.some(({ _id }) => _id === item._id)
-              ? { ...docs.filter(({ _id }) => _id === item._id)[0], ...item } // update altered docs
-              : item // insert new docs
-        })
-        .filter(x => x)
-
-      if (newDocs.length) {
-        // console.log('saving docs', newDocs)
-        await db.bulkDocs(newDocs)
+      const bulk = differenceOmittingDocProps(reducerState, docs)
+      // console.log(bulk.length, 'reducerState', reducerState, 'docs', docs)
+      if (bulk.length) {
+        // console.log('bulk', bulk)
+        await db.bulkDocs(bulk)
       }
-      // await Promise.all(
-      //   newDocs.map(async newDoc => {
-      //     const method = newDoc._id ? 'put' : 'post'
-      //     console.log(method, newDoc)
-      //     return await db[method](newDoc)
-      //       .then(function(response) {
-      //         console.log('ok', response.ok)
-      //       })
-      //       .catch(function(err) {
-      //         console.log('err', err)
-      //       })
-      //   })
-      // )
-      // console.log('unpersistedQueue', unpersistedQueue[reducerName])
-      // TODO
-      // delete removed docs
 
       // console.log('IS UP TO DATE', reducerName, isArrayUpToDate(reducerName))
       isUpdating[reducerName] = false
