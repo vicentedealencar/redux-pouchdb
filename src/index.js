@@ -1,3 +1,4 @@
+import { omit } from 'ramda'
 import equal from 'deep-equal'
 import 'array.from'
 import waitAvailability from './utils/waitAvailability'
@@ -64,9 +65,11 @@ const initializePersistentArrayReducer = async (
       since: 'now'
     }).on('change', change => {
       // console.log('change', change)
-      if (change.doc.state) {
+      if (change.doc) {
+        // console.log('updateArrayReducer', change.doc)
         updateArrayReducer(change.doc)
       } else {
+        // console.log('saveArrayReducer', store.getState())
         saveArrayReducer(store.getState())
       }
     })
@@ -75,7 +78,6 @@ const initializePersistentArrayReducer = async (
   }
 
   isInitialized[reducerName] = true
-  // console.log(reducerName, 'isInitialized')
 }
 
 // service
@@ -151,10 +153,13 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
       action.reducer === reducerName &&
       action.doc
     ) {
-      const { _id, _rev, _deleted, ...cleanDoc } = action.doc
-
+      const omitDocProps = omit(['_id', '_rev', '_deleted'])
+      // console.log('action', action)
       lastState = state.map(item => {
-        if (equal(item, cleanDoc.state) || equal(item._id, _id)) {
+        if (
+          equal(item, omitDocProps(action.doc)) ||
+          equal(item._id, action.doc._id)
+        ) {
           return action.doc
         }
 

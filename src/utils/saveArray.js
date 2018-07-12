@@ -1,10 +1,5 @@
 import equal from 'deep-equal'
-import {
-  uniqWith,
-  omit,
-  concat,
-  differenceWith
-} from 'ramda'
+import { uniqWith, omit, concat, differenceWith } from 'ramda'
 import loadArray from './loadArray'
 
 const unpersistedQueue = {}
