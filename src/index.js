@@ -1,6 +1,5 @@
 import equal from 'deep-equal'
 import 'array.from'
-// import timeout from 'timeout-then'
 import waitAvailability from './utils/waitAvailability'
 import save, { isUpToDate } from './utils/save'
 import saveArray, { isArrayUpToDate } from './utils/saveArray'

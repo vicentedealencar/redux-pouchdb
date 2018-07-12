@@ -31,7 +31,7 @@ describe('redux-pouchdb array', () => {
   const reducerName = 'counters'
   const finalReducer = persistentReducer(db, reducerName, true)(reducer)
 
-  it('should persist store state as array and insert', async done => {
+  it('should persist store state as array and delete', async done => {
     let store = createPersistentStore(finalReducer)
 
     // console.log('waitInitialization')
@@ -56,7 +56,7 @@ describe('redux-pouchdb array', () => {
     x1a.should.be.equal(x1b)
 
     store.dispatch({
-      type: INCREMENT
+      type: DECREMENT
     })
     await timeout(1000)
 
