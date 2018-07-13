@@ -1,11 +1,6 @@
 import 'should'
 import { createStore, compose } from 'redux'
-import {
-  persistStore,
-  persistentReducer,
-  waitInitialization,
-  waitPersistence
-} from '../src/index'
+import { persistStore, persistentReducer, waitSync } from '../src/index'
 import load from '../src/utils/load'
 import PouchDB from 'pouchdb'
 import timeout from 'timeout-then'
@@ -42,7 +37,7 @@ describe('redux-pouchdb tests', () => {
       let store = createStore(finalReducer)
       persistStore(store)
       // console.log('-----go?----')
-      const success = await waitInitialization(reducerName)
+      const success = await waitSync(reducerName)
       success.should.be.equal(true)
       // console.log('-----asserted----')
 
@@ -60,7 +55,7 @@ describe('redux-pouchdb tests', () => {
       })
       // console.log('------incremented---')
 
-      await waitPersistence(reducerName)
+      await waitSync(reducerName)
       // console.log('----waited-----')
 
       const doc2 = await load(db)(reducerName)

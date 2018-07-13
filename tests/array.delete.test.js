@@ -1,12 +1,7 @@
 import 'should'
 import { createStore, compose } from 'redux'
 import PouchDB from 'pouchdb'
-import {
-  persistStore,
-  persistentReducer,
-  waitInitialization,
-  waitPersistence
-} from '../src/index'
+import { persistStore, persistentReducer, waitSync } from '../src/index'
 import loadArray from '../src/utils/loadArray'
 import timeout from 'timeout-then'
 
@@ -33,11 +28,10 @@ describe('redux-pouchdb array', () => {
     let store = createStore(finalReducer)
     persistStore(store)
 
-    const success = await waitInitialization(reducerName)
+    const success = await waitSync(reducerName)
     success.should.be.equal(true)
 
-    await timeout(1000)
-    await waitPersistence(reducerName)
+    await waitSync(reducerName)
 
     const docs = await loadArray(db)(reducerName)
     const x1a = store
@@ -56,8 +50,7 @@ describe('redux-pouchdb array', () => {
       type: DECREMENT
     })
 
-    await timeout(1000)
-    await waitPersistence(reducerName)
+    await waitSync(reducerName)
     await timeout(1000)
 
     const docs2 = await loadArray(db)(reducerName)

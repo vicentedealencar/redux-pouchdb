@@ -13,10 +13,8 @@ export default (db, reducerName) => {
   const saveReducer = async reducerState => {
     if (isUpdating[reducerName]) {
       //enqueue promise
-      unpersistedQueue[reducerName] = unpersistedQueue[reducerName] || []
-      unpersistedQueue[reducerName].push(reducerState)
-
-      return Promise.resolve()
+      unpersistedQueue[reducerName] = (unpersistedQueue[reducerName] || []).concat(reducerState)
+      return
     }
 
     isUpdating[reducerName] = true

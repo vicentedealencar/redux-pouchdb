@@ -4,7 +4,7 @@ import { uniqOmittingDocProps, getDiff } from './ramdaUtils'
 const unpersistedQueue = {}
 let isUpdating = {}
 
-export const isArrayUpToDate = reducerName => {
+export const isUpToDate = reducerName => {
   // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
   return (
     !isUpdating[reducerName] &&

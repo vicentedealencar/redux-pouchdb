@@ -1,12 +1,7 @@
 import 'should'
 import { createStore, compose } from 'redux'
 import PouchDB from 'pouchdb'
-import {
-  persistStore,
-  persistentReducer,
-  waitInitialization,
-  waitPersistence
-} from '../src/index'
+import { persistStore, persistentReducer, waitSync } from '../src/index'
 import loadArray from '../src/utils/loadArray'
 import timeout from 'timeout-then'
 
@@ -30,16 +25,18 @@ describe('redux-pouchdb array', () => {
   const finalReducer = persistentReducer(db, reducerName, true)(reducer)
 
   it('should persist store state as array and insert', async done => {
+    // console.log('--go---')
     let store = createStore(finalReducer)
     persistStore(store)
+    // console.log('--persisted---')
 
-    const success = await waitInitialization(reducerName)
+    const success = await waitSync(reducerName)
     success.should.be.equal(true)
-
-    await timeout(1000)
-    await waitPersistence(reducerName)
+    // console.log('--waited---')
+    await waitSync(reducerName)
 
     const docs = await loadArray(db)(reducerName)
+    // console.log('--loaded---')
     const x1a = store
       .getState()
       .map(a => a.x)
@@ -55,12 +52,14 @@ describe('redux-pouchdb array', () => {
     store.dispatch({
       type: INCREMENT
     })
-    await timeout(1000)
+    // console.log('--INC---')
 
-    await waitPersistence(reducerName)
+    await waitSync(reducerName)
     await timeout(1000)
+    // console.log('--waited---')
 
     const docs2 = await loadArray(db)(reducerName)
+    // console.log('--loaded2---')
 
     const x2a = store
       .getState()
