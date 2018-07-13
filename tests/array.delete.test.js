@@ -1,7 +1,7 @@
 import 'should'
-import { createStore, compose } from 'redux'
+import { createStore } from 'redux'
 import PouchDB from 'pouchdb'
-import { persistStore, persistentReducer, waitSync } from '../src/index'
+import { persistStore, persistentCollectionReducer, waitSync } from '../src/index'
 import loadArray from '../src/utils/loadArray'
 import timeout from 'timeout-then'
 
@@ -22,7 +22,7 @@ describe('redux-pouchdb array', () => {
     }
   }
   const reducerName = 'counters'
-  const finalReducer = persistentReducer(db, reducerName, true)(reducer)
+  const finalReducer = persistentCollectionReducer(db, reducerName)(reducer)
 
   it('should persist store state as array and delete', async done => {
     let store = createStore(finalReducer)

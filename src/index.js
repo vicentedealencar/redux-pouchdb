@@ -1,4 +1,3 @@
-import { equals } from 'ramda'
 import persistentArrayReducer, {
   isArrayUpToDate
 } from './persistentArrayReducer'
@@ -8,6 +7,7 @@ import persistentObjectReducer, {
 import waitAvailability from './utils/waitAvailability'
 
 let _store
+const storeGetter = () => _store
 
 export const waitSync = reducerName =>
   waitAvailability(
@@ -18,7 +18,7 @@ export const waitSync = reducerName =>
       //   !!isObjectUpToDate(reducerName),
       //   !!isArrayUpToDate(reducerName)
       // ),
-    _store && isArrayUpToDate(reducerName) && isObjectUpToDate(reducerName)
+      _store && isArrayUpToDate(reducerName) && isObjectUpToDate(reducerName)
   )
 
 export const persistStore = store => {
@@ -28,5 +28,11 @@ export const persistStore = store => {
 // Higher order reducer
 export const persistentReducer = (db, reducerName, isArray) =>
   isArray
-    ? persistentArrayReducer(() => _store, db, reducerName)
-    : persistentObjectReducer(() => _store, db, reducerName)
+    ? persistentArrayReducer(storeGetter, db, reducerName)
+    : persistentObjectReducer(storeGetter, db, reducerName)
+
+export const persistentDocumentReducer = (db, reducerName) =>
+  persistentObjectReducer(storeGetter, db, reducerName)
+
+export const persistentCollectionReducer = (db, reducerName) =>
+  persistentArrayReducer(storeGetter, db, reducerName)

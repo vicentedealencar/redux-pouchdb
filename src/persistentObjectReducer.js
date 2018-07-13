@@ -6,9 +6,10 @@ export const SET_OBJECT_REDUCER = '@@redux-pouchdb/SET_OBJECT_REDUCER'
 
 let isInitialized = {}
 
-export const isObjectUpToDate = reducerName =>(
+export const isObjectUpToDate = reducerName =>
   // console.log(isInitialized[reducerName], isUpToDate(reducerName)),
-  isInitialized !== 'undefined' || (isInitialized[reducerName] && isUpToDate(reducerName)))
+  isInitialized !== 'undefined' ||
+  (isInitialized[reducerName] && isUpToDate(reducerName))
 
 const setReducer = (store, doc, reducerName) => {
   const { _id, _rev, state } = doc

@@ -7,10 +7,10 @@ export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
 
 let isInitialized = {}
 
-export const isArrayUpToDate = reducerName => (
+export const isArrayUpToDate = reducerName =>
   // console.log(isInitialized[reducerName], isUpToDate(reducerName)),
-  isInitialized !== 'undefined' || (isInitialized[reducerName] && isUpToDate(reducerName))
-)
+  isInitialized !== 'undefined' ||
+  (isInitialized[reducerName] && isUpToDate(reducerName))
 
 const updateArrayReducer = (store, doc, reducerName) => {
   // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))

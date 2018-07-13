@@ -1,17 +1,8 @@
 import 'should'
-import { createStore, compose } from 'redux'
-import { persistStore, persistentReducer, waitSync } from '../src/index'
+import { createStore } from 'redux'
+import { persistStore, persistentDocumentReducer, waitSync } from '../src/index'
 import load from '../src/utils/load'
 import PouchDB from 'pouchdb'
-import timeout from 'timeout-then'
-
-const waitAction = store => type =>
-  new Promise(resolve => {
-    store.subscribe((...p) => {
-      const state = store.getState()
-      resolve(state)
-    })
-  })
 
 describe('redux-pouchdb tests', () => {
   const db = new PouchDB('app', { db: require('memdown') })
@@ -29,7 +20,7 @@ describe('redux-pouchdb tests', () => {
     }
   }
   const reducerName = 'counter'
-  const finalReducer = persistentReducer(db, reducerName)(reducer)
+  const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
 
   it(
     'should persist store state',
