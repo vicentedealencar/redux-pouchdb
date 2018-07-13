@@ -1,5 +1,4 @@
-import equal from 'deep-equal'
-import { uniqWith, omit, concat, differenceWith } from 'ramda'
+import { equals, uniqWith, omit, concat, differenceWith } from 'ramda'
 import loadArray from './loadArray'
 
 const unpersistedQueue = {}
@@ -7,7 +6,7 @@ let isUpdating = {}
 
 const omitDocProps = omit(['_id', '_rev', '_deleted'])
 const equalsOmittingDocProps = (curr, old) =>
-  equal(omitDocProps(curr), omitDocProps(old))
+  equals(omitDocProps(curr), omitDocProps(old))
 const uniqOmittingDocProps = uniqWith(equalsOmittingDocProps)
 const getDeletedItems = (curr, old) =>
   differenceWith(equalsOmittingDocProps, old, curr)

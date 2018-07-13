@@ -1,5 +1,4 @@
-import { omit } from 'ramda'
-import equal from 'deep-equal'
+import { omit, equals } from 'ramda'
 import 'array.from'
 import waitAvailability from './utils/waitAvailability'
 import save, { isUpToDate } from './utils/save'
@@ -120,7 +119,7 @@ const initializePersistentObjectReducer = async (
       // console.log('doc change', change)
 
       if (change.doc.state) {
-        if (!equal(change.doc.state, storeState)) {
+        if (!equals(change.doc.state, storeState)) {
           setReducer(change.doc)
         }
       } else {
@@ -157,8 +156,8 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
       // console.log('action', action)
       lastState = state.map(item => {
         if (
-          equal(item, omitDocProps(action.doc)) ||
-          equal(item._id, action.doc._id)
+          equals(item, omitDocProps(action.doc)) ||
+          equals(item._id, action.doc._id)
         ) {
           return action.doc
         }
@@ -178,7 +177,7 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
       //   isInitialized[reducerName],
       //   !equal(reducedState, lastState)
       // )
-      if (isInitialized[reducerName] && !equal(reducedState, lastState)) {
+      if (isInitialized[reducerName] && !equals(reducedState, lastState)) {
         lastState = reducedState
         saveArrayReducer(reducedState)
       }
@@ -208,7 +207,7 @@ const persistentObjectReducer = (db, reducerName) => reducer => {
 
     const reducedState = reducer(state, action)
 
-    if (isInitialized[reducerName] && !equal(reducedState, lastState)) {
+    if (isInitialized[reducerName] && !equals(reducedState, lastState)) {
       lastState = reducedState
       saveReducer(reducedState)
     }
