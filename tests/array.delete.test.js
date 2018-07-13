@@ -32,6 +32,7 @@ describe('redux-pouchdb array', () => {
     success.should.be.equal(true)
 
     await waitSync(reducerName)
+    await timeout(1000)
 
     const docs = await loadArray(db)(reducerName)
     const x1a = store

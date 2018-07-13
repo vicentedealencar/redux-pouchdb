@@ -7,6 +7,10 @@ let isUpdating = {}
 export const isUpToDate = reducerName => {
   // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
   return (
+    console.log(
+      !isUpdating[reducerName],
+      (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+    ),
     !isUpdating[reducerName] &&
     (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
   )
