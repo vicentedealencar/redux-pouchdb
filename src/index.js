@@ -25,11 +25,8 @@ export const waitPersistence = reducerName =>
     () => isUpToDate(reducerName) && isArrayUpToDate(reducerName)
   )
 
-// Store enhancer
-export const persistentStore = storeCreator => (reducer, initialState) => {
-  store = storeCreator(reducer, initialState)
-
-  return store
+export const persistStore = unpersistedStore => {
+  store = unpersistedStore
 }
 
 //service
@@ -154,7 +151,10 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
     ) {
       // console.log('action', action)
       lastState = state.map(item => {
-        if (equalsOmittingDocProps(item, action.doc) || item._id === action.doc._id) {
+        if (
+          equalsOmittingDocProps(item, action.doc) ||
+          item._id === action.doc._id
+        ) {
           return action.doc
         }
 

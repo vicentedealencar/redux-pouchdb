@@ -1,7 +1,7 @@
 import 'should'
 import { createStore, compose } from 'redux'
 import {
-  persistentStore,
+  persistStore,
   persistentReducer,
   waitInitialization,
   waitPersistence
@@ -23,8 +23,6 @@ describe('redux-pouchdb tests', () => {
   const INCREMENT = 'INCREMENT'
   const DECREMENT = 'DECREMENT'
 
-  const createPersistentStore = compose(persistentStore)(createStore)
-
   const reducer = (state = { x: 0 }, action) => {
     switch (action.type) {
       case INCREMENT:
@@ -41,7 +39,8 @@ describe('redux-pouchdb tests', () => {
   it(
     'should persist store state',
     async done => {
-      let store = createPersistentStore(finalReducer)
+      let store = createStore(finalReducer)
+      persistStore(store)
 
       await waitInitialization(reducerName)
 

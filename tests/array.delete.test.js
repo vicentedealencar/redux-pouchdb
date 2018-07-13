@@ -2,7 +2,7 @@ import 'should'
 import { createStore, compose } from 'redux'
 import PouchDB from 'pouchdb'
 import {
-  persistentStore,
+  persistStore,
   persistentReducer,
   waitInitialization,
   waitPersistence
@@ -15,8 +15,6 @@ describe('redux-pouchdb array', () => {
 
   const INCREMENT = 'INCREMENT'
   const DECREMENT = 'DECREMENT'
-
-  const createPersistentStore = compose(persistentStore)(createStore)
 
   const reducer = (state = [{ x: 0 }, { x: 1 }, { x: 2 }], action) => {
     switch (action.type) {
@@ -32,7 +30,8 @@ describe('redux-pouchdb array', () => {
   const finalReducer = persistentReducer(db, reducerName, true)(reducer)
 
   it('should persist store state as array and delete', async done => {
-    let store = createPersistentStore(finalReducer)
+    let store = createStore(finalReducer)
+    persistStore(store)
 
     // console.log('waitInitialization')
     await waitInitialization(reducerName)
