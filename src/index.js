@@ -1,8 +1,8 @@
-import { omit, equals } from 'ramda'
-import 'array.from'
+import { equals } from 'ramda'
 import waitAvailability from './utils/waitAvailability'
 import save, { isUpToDate } from './utils/save'
 import saveArray, { isArrayUpToDate } from './utils/saveArray'
+import { equalsOmittingDocProps } from './utils/ramdaUtils'
 
 export const SET_OBJECT_REDUCER = '@@redux-pouchdb/SET_OBJECT_REDUCER'
 export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
@@ -152,13 +152,9 @@ const persistentArrayReducer = (db, reducerName) => reducer => {
       action.reducer === reducerName &&
       action.doc
     ) {
-      const omitDocProps = omit(['_id', '_rev', '_deleted'])
       // console.log('action', action)
       lastState = state.map(item => {
-        if (
-          equals(item, omitDocProps(action.doc)) ||
-          equals(item._id, action.doc._id)
-        ) {
+        if (equalsOmittingDocProps(item, action.doc) || item._id === action.doc._id) {
           return action.doc
         }
 

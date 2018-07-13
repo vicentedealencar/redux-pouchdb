@@ -1,24 +1,8 @@
-import { equals, uniqWith, omit, concat, differenceWith } from 'ramda'
 import loadArray from './loadArray'
+import { uniqOmittingDocProps, getDiff } from './ramdaUtils'
 
 const unpersistedQueue = {}
 let isUpdating = {}
-
-const omitDocProps = omit(['_id', '_rev', '_deleted'])
-const equalsOmittingDocProps = (curr, old) =>
-  equals(omitDocProps(curr), omitDocProps(old))
-const uniqOmittingDocProps = uniqWith(equalsOmittingDocProps)
-const getDeletedItems = (curr, old) =>
-  differenceWith(equalsOmittingDocProps, old, curr)
-const getInsertedItems = differenceWith(equalsOmittingDocProps)
-const getDiff = (curr, old) =>
-  concat(
-    getInsertedItems(curr, old),
-    getDeletedItems(curr, old).map(x => ({
-      ...x,
-      _deleted: true
-    }))
-  )
 
 export const isArrayUpToDate = reducerName => {
   // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
