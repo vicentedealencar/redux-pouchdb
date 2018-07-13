@@ -41,28 +41,36 @@ describe('redux-pouchdb tests', () => {
     async done => {
       let store = createStore(finalReducer)
       persistStore(store)
-
-      await waitInitialization(reducerName)
+      // console.log('-----go?----')
+      const success = await waitInitialization(reducerName)
+      success.should.be.equal(true)
+      // console.log('-----asserted----')
 
       const doc = await load(db)(reducerName)
+      // console.log('load', reducerName, doc)
 
       const x1a = store.getState().x
       const x1b = doc.state.x
+      // console.log('-----got----')
 
       x1a.should.be.equal(x1b)
 
       store.dispatch({
         type: INCREMENT
       })
+      // console.log('------incremented---')
 
       await waitPersistence(reducerName)
+      // console.log('----waited-----')
 
       const doc2 = await load(db)(reducerName)
+      // console.log('-----loaded----')
 
       const x2a = store.getState().x
       const x2b = doc2.state.x
 
       x2a.should.be.equal(x2b)
+      // console.log('-----done----')
 
       done()
     },

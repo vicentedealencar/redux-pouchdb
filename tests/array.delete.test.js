@@ -33,12 +33,10 @@ describe('redux-pouchdb array', () => {
     let store = createStore(finalReducer)
     persistStore(store)
 
-    // console.log('waitInitialization')
-    await waitInitialization(reducerName)
+    const success = await waitInitialization(reducerName)
+    success.should.be.equal(true)
 
-    // console.log('timeout')
     await timeout(1000)
-    // console.log('waitPersistence')
     await waitPersistence(reducerName)
 
     const docs = await loadArray(db)(reducerName)
@@ -57,8 +55,8 @@ describe('redux-pouchdb array', () => {
     store.dispatch({
       type: DECREMENT
     })
-    await timeout(1000)
 
+    await timeout(1000)
     await waitPersistence(reducerName)
     await timeout(1000)
 
