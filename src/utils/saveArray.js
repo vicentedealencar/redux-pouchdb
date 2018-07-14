@@ -9,10 +9,10 @@ export const isUpToDate = reducerName => {
   return (
     console.log(
       !isUpdating[reducerName],
-      (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+      !unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length
     ),
     !isUpdating[reducerName] &&
-    (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+      (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
   )
 }
 export default (db, reducerName) => {

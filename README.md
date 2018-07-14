@@ -2,8 +2,9 @@
 
 ## How it is done
 
-- The [PouchDB](http://pouchdb.com/) database persists the state of the [Redux](rackt.github.io/redux) store every time it changes.
-- An action with type DB_CHANGES is dispatched to the store every time the database syncs.
+It is very simple:
+- The [PouchDB](http://pouchdb.com/) database persists the state of chosen parts of the [Redux](https://redux.js.org) store every time it changes.
+- Your reducers will be passed the state from PouchDB when your app loads and every time a change arrives (if you are syncing with a remote db).
 
 ## Install
 
@@ -43,6 +44,16 @@ const reducerName = 'counter'
 const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
 ```
 
+This is how reducer would be persisted like this
+
+``` js
+{
+  _id: 'reducerName', // the name of the reducer function
+  state: {}|[], // the state of the reducer
+  _rev: 'x-xxxxx' // pouchdb keeps track of the revisions
+}
+```
+
 ### `persistentCollectionReducer`
 
 The reducers shaped like as array that you wish to persist should be enhanced with this higher order reducer.
@@ -63,6 +74,16 @@ const stackCounter = (state = [{ x: 0 }, { x: 1 }, { x: 2 }], action) => {
 
 const reducerName = 'stackCounter'
 export default persistentCollectionReducer(db, reducerName)(stackCounter)
+```
+
+This is how reducer would be persisted like this
+
+``` js
+{
+  _id: 'reducerName', // the name of the reducer function
+  ...state: [], // the state of the reducer
+  _rev: 'x-xxxxx' // pouchdb keeps track of the revisions
+}
 ```
 
 ### `persistStore`

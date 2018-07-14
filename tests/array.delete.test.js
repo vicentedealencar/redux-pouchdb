@@ -1,7 +1,11 @@
 import 'should'
 import { createStore } from 'redux'
 import PouchDB from 'pouchdb'
-import { persistStore, persistentCollectionReducer, waitSync } from '../src/index'
+import {
+  persistStore,
+  persistentCollectionReducer,
+  waitSync
+} from '../src/index'
 import loadArray from '../src/utils/loadArray'
 import timeout from 'timeout-then'
 
