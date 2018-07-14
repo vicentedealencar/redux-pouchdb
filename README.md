@@ -1,12 +1,25 @@
 # redux-pouchdb
 
-## What is going on here?
+## How it is done
 
-It is very simple:
 - The [PouchDB](http://pouchdb.com/) database persists the state of the [Redux](rackt.github.io/redux) store every time it changes.
 - An action with type DB_CHANGES is dispatched to the store every time the database syncs.
 
+## Install
+
+`yarn add redux-pouchdb@1.0.0-rc.1`
+
 ## Usage
+
+The reducers to be persisted should be augmented by a higher order reducer accordingly to the type of the state. 
+
+Reducers in which the state is an object get persisted as a single document by using `persistentDocumentReducer`
+
+Reducers in which the state is an array get persisted as a collection where each item is a document by using `persistentDocumentReducer`
+
+Besides that the store should passed to the plain function `persistStore`
+
+By following this steps your pouchdb database should keep it self in sync with your redux store.
 
 ### `persistentDocumentReducer`
 
@@ -63,4 +76,19 @@ const db = new PouchDB('dbname');
 
 const store = createStore(reducer, initialState);
 persistStore(store)
+```
+
+### `waitSync`
+
+This function receives a reducerName and returns a promise that resolve true if that reducer is synced
+
+``` js
+let store = createStore(persistedReducer)
+persistStore(store)
+
+store.dispatch({
+  type: INCREMENT
+})
+
+const isSynced = await waitSync(reducerName)
 ```
