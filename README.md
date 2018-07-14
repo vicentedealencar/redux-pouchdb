@@ -1,60 +1,37 @@
 # redux-pouchdb
 
-## What is going on here?
+## How it is done
 
 It is very simple:
-- The [PouchDB](http://pouchdb.com/) database persists the state of chosen parts of the [Redux](rackt.github.io/redux) store every time it changes.
+- The [PouchDB](http://pouchdb.com/) database persists the state of chosen parts of the [Redux](https://redux.js.org) store every time it changes.
 - Your reducers will be passed the state from PouchDB when your app loads and every time a change arrives (if you are syncing with a remote db).
+
+## Install
+
+`yarn add redux-pouchdb@1.0.0-rc.1`
 
 ## Usage
 
-### `persistentStore`
+The reducers to be persisted should be augmented by a higher order reducer accordingly to the type of the state. 
 
-This store enhancer should be composed with yours in order to initialize
+Reducers in which the state is an object get persisted as a single document by using `persistentDocumentReducer`
 
-``` js
-import { persistentStore } from 'redux-pouchdb';
+Reducers in which the state is an array get persisted as a collection where each item is a document by using `persistentDocumentReducer`
 
-const db = new PouchDB('dbname');
+Besides that the store should passed to the plain function `persistStore`
 
-//optional
-const applyMiddlewares = applyMiddleware(
-  thunkMiddleware,
-  loggerMiddleware
-);
+By following this steps your pouchdb database should keep it self in sync with your redux store.
 
-const createStoreWithMiddleware = compose(
-  applyMiddlewares,
-  persistentStore(db)
-)(createStore);
+### `persistentDocumentReducer`
 
-const store = createStoreWithMiddleware(reducer, initialState);
-```
-
-The `persistentStore` enhancer takes an optional second argument which can be a function or an array of functions which are called whenever changes arrive from the database. These functions are given the document (see the format at the bottom) from PouchDB and any truthy return values will be dispatched to the store. You can use this to set up more complex actions based on new data. If you want to take advantage of any middleware you are also setting up, compose the `persistentStore` before `applyMiddlewares`
-
-```js
-const changeHandler = doc => {
-  // Return thunk based on doc.
-};
-const createStoreWithMiddleware = compose(
-  persistentStore(db, changeHandler),
-  applyMiddlewares
-)(createStore);
-// ...
-```
-
-### `persistentReducer`
-
-The reducers you wish to persist should be enhanced with this higher order reducer.
+The reducers shaped like as object that you wish to persist should be enhanced with this higher order reducer.
 
 ``` js
-import { persistentReducer } from 'redux-pouchdb';
+import { persistentDocumentReducer } from 'redux-pouchdb';
 
 const counter = (state = {count: 0}, action) => {
   switch(action.type) {
   case INCREMENT:
-  console.log(state.count + 1);
     return { count: state.count + 1 };
   case DECREMENT:
     return { count: state.count - 1 };
@@ -63,25 +40,76 @@ const counter = (state = {count: 0}, action) => {
   }
 };
 
-export default persistentReducer(counter);
+const reducerName = 'counter'
+const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
 ```
 
-NOTE: If you plan on minifying your code, or you want to use a name different from the reducer function name, you can pass a second parameter to `persistentReducer`.
-
-```js
-export default persistentReducer(counter, 'counter');
-```
-
-## Caveat
-
-The current behavior is to have a document relative to the reducer that looks like:
+This is how reducer would be persisted like this
 
 ``` js
 {
   _id: 'reducerName', // the name of the reducer function
   state: {}|[], // the state of the reducer
-  _rev: '' // pouchdb keeps track of the revisions
+  _rev: 'x-xxxxx' // pouchdb keeps track of the revisions
 }
 ```
 
-Notice that if your reducer actually returns an array, and you want your elements to be stored in separate documents of a specific bucket, this is not yet supported.
+### `persistentCollectionReducer`
+
+The reducers shaped like as array that you wish to persist should be enhanced with this higher order reducer.
+
+``` js
+import { persistentCollectionReducer } from 'redux-pouchdb';
+
+const stackCounter = (state = [{ x: 0 }, { x: 1 }, { x: 2 }], action) => {
+  switch (action.type) {
+    case INCREMENT:
+      return state.concat({ x: state.length })
+    case DECREMENT:
+      return !state.length ? state : state.slice(0, state.length - 1)
+    default:
+      return state
+  }
+}
+
+const reducerName = 'stackCounter'
+export default persistentCollectionReducer(db, reducerName)(stackCounter)
+```
+
+This is how reducer would be persisted like this
+
+``` js
+{
+  _id: 'reducerName', // the name of the reducer function
+  ...state: [], // the state of the reducer
+  _rev: 'x-xxxxx' // pouchdb keeps track of the revisions
+}
+```
+
+### `persistStore`
+
+This plain function holds the store for later usage
+
+``` js
+import { persistStore } from 'redux-pouchdb';
+
+const db = new PouchDB('dbname');
+
+const store = createStore(reducer, initialState);
+persistStore(store)
+```
+
+### `waitSync`
+
+This function receives a reducerName and returns a promise that resolve true if that reducer is synced
+
+``` js
+let store = createStore(persistedReducer)
+persistStore(store)
+
+store.dispatch({
+  type: INCREMENT
+})
+
+const isSynced = await waitSync(reducerName)
+```

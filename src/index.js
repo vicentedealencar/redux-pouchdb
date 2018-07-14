@@ -1,88 +1,38 @@
-import equal from 'deep-equal';
-import 'array.from';
-import save from './save';
+import persistentArrayReducer, {
+  isArrayUpToDate
+} from './persistentArrayReducer'
+import persistentObjectReducer, {
+  isObjectUpToDate
+} from './persistentObjectReducer'
+import waitAvailability from './utils/waitAvailability'
 
-export const SET_REDUCER = 'redux-pouchdb/SET_REDUCER';
-export const INIT = '@@redux-pouchdb/INIT';
+let _store
+const storeGetter = () => _store
 
-const LOCAL_IDENTIFIER = Array(12).fill(0).map(_=>String.fromCharCode((x=>x>25?x+71:x+65)(Math.floor(Math.random()*52)))).join('');
+export const waitSync = reducerName =>
+  waitAvailability(
+    () =>
+      // console.log(
+      //   'waitSync',
+      //   !!_store,
+      //   !!isObjectUpToDate(reducerName),
+      //   !!isArrayUpToDate(reducerName)
+      // ),
+      _store && isArrayUpToDate(reducerName) && isObjectUpToDate(reducerName)
+  )
 
-let saveReducer;
-let isInitialized = false;
-export const persistentStore = (db, onChange = []) => storeCreator => (reducer, initialState) => {
+export const persistStore = store => {
+  _store = store
+}
 
-  const store = storeCreator(reducer, initialState);
+// Higher order reducer
+export const persistentReducer = (db, reducerName, isArray) =>
+  isArray
+    ? persistentArrayReducer(storeGetter, db, reducerName)
+    : persistentObjectReducer(storeGetter, db, reducerName)
 
-  saveReducer = save(db, LOCAL_IDENTIFIER);
+export const persistentDocumentReducer = (db, reducerName) =>
+  persistentObjectReducer(storeGetter, db, reducerName)
 
-  if (!Array.isArray(onChange)) {
-    onChange = [onChange];
-  }
-
-  const setReducer = doc => {
-    const { _id, _rev, state } = doc;
-
-    store.dispatch({
-      type: SET_REDUCER,
-      reducer: _id,
-      state,
-      _rev
-    });
-
-    onChange.forEach(fn => {
-      const result = fn(doc);
-      if (result) {
-        store.dispatch(result);
-      }
-    });
-  };
-
-  db.allDocs({include_docs: true}).then(res => {
-    const promises = res.rows.map(row => setReducer(row.doc));
-    return Promise.all(promises);
-  }).then(() => {
-    isInitialized = true;
-    store.dispatch({
-      type: INIT
-    });
-
-    return db.changes({
-      include_docs: true,
-      live: true,
-      since: 'now'
-    }).on('change', change => {
-      if (change.doc.state && change.doc.madeBy !== LOCAL_IDENTIFIER) {
-        setReducer(change.doc);
-      }
-    });
-  }).catch(console.error.bind(console));
-
-  return store;
-};
-
-export const persistentReducer = (reducer, name) => {
-  let lastState;
-  name = name || reducer.name;
-
-  return (state, action) => {
-    if (action.type === SET_REDUCER &&
-        action.reducer === name &&
-        action.state) {
-
-      lastState = action.state;
-      return reducer(action.state, action);
-    }
-    if (action.type === SET_REDUCER) {
-      // Another reducer's state... ignore.
-      return state;
-    }
-
-    const reducedState = reducer(state, action);
-    if (isInitialized && !equal(reducedState,lastState)) {
-      lastState = reducedState;
-      saveReducer(name, reducedState);
-    }
-
-    return reducedState;
-  };
-};
+export const persistentCollectionReducer = (db, reducerName) =>
+  persistentArrayReducer(storeGetter, db, reducerName)

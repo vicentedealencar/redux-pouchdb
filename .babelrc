@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    "transform-object-rest-spread"
+  ],
+  "env": {
+    "testing": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": "8"
+          }
+        }]
+      ]
+    }
+  }
+}
