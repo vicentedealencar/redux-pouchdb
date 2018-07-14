@@ -8,35 +8,12 @@ It is very simple:
 
 ## Usage
 
-### `persistentStore`
+### `persistentDocumentReducer`
 
-This store enhancer should be composed with yours in order to initialize
-
-``` js
-import { persistentStore } from 'redux-pouchdb';
-
-const db = new PouchDB('dbname');
-
-//optional
-const applyMiddlewares = applyMiddleware(
-  thunkMiddleware,
-  loggerMiddleware
-);
-
-const createStoreWithMiddleware = compose(
-  applyMiddlewares,
-  persistentStore(db),
-  createStore);
-
-const store = createStoreWithMiddleware(reducer, initialState);
-```
-
-### `persistentReducer`
-
-The reducers you wish to persist should be enhanced with this higher order reducer.
+The reducers shaped like as object that you wish to persist should be enhanced with this higher order reducer.
 
 ``` js
-import { persistentReducer } from 'redux-pouchdb';
+import { persistentDocumentReducer } from 'redux-pouchdb';
 
 const counter = (state = {count: 0}, action) => {
   switch(action.type) {
@@ -49,19 +26,41 @@ const counter = (state = {count: 0}, action) => {
   }
 };
 
-export default persistentReducer(counter);
+const reducerName = 'counter'
+const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
 ```
 
-## Caveat
+### `persistentCollectionReducer`
 
-The current behavior is to have a document relative to the reducer that looks like:
+The reducers shaped like as array that you wish to persist should be enhanced with this higher order reducer.
 
 ``` js
-{
-  _id: 'reducerName', // the name the reducer function
-  state: {}|[], // the state of the reducer
-  _rev: '' // pouchdb keeps track of the revisions
+import { persistentCollectionReducer } from 'redux-pouchdb';
+
+const stackCounter = (state = [{ x: 0 }, { x: 1 }, { x: 2 }], action) => {
+  switch (action.type) {
+    case INCREMENT:
+      return state.concat({ x: state.length })
+    case DECREMENT:
+      return !state.length ? state : state.slice(0, state.length - 1)
+    default:
+      return state
+  }
 }
+
+const reducerName = 'stackCounter'
+export default persistentCollectionReducer(db, reducerName)(stackCounter)
 ```
 
-Notice that if your reducer actually returns an array, and you want your elements to be stored in separate documents of a specific bucket, this is not yet supported.
+### `persistStore`
+
+This plain function holds the store for later usage
+
+``` js
+import { persistStore } from 'redux-pouchdb';
+
+const db = new PouchDB('dbname');
+
+const store = createStore(reducer, initialState);
+persistStore(store)
+```
