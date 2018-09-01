@@ -3,16 +3,21 @@ import { uniqOmittingDocProps, getDiff } from './ramdaUtils'
 
 const unpersistedQueue = {}
 let isUpdating = {}
+let waitingChanges = {}
 
 export const isUpToDate = reducerName => {
   // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
   return (
-    console.log(
-      !isUpdating[reducerName],
-      !unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length
-    ),
-    !isUpdating[reducerName] &&
-      (!unpersistedQueue[reducerName] || !unpersistedQueue[reducerName].length)
+    // console.log(
+    //   isUpdating,
+    //   unpersistedQueue,
+    //   waitingChanges,
+    //   reducerName,
+    // ),
+    (isUpdating[reducerName] === undefined || !isUpdating[reducerName]) &&
+    (unpersistedQueue[reducerName] === undefined ||
+      !unpersistedQueue[reducerName]) &&
+    !waitingChanges[reducerName]
   )
 }
 export default (db, reducerName) => {
@@ -52,8 +57,12 @@ export default (db, reducerName) => {
 
       // console.log(bulk.length, 'reducerState', reducerState, 'docs', docs)
       if (bulk.length) {
-        // console.log('bulk', bulk)
+        if (!waitingChanges[reducerName]) waitingChanges[reducerName] = 0
+        waitingChanges[reducerName] += 1
+
+        // console.log('bulk', bulk, 'waitingChanges', waitingChanges)
         await db.bulkDocs(bulk)
+        waitingChanges[reducerName] -= 1
       }
 
       // console.log('IS UP TO DATE', reducerName, isArrayUpToDate(reducerName))
@@ -63,7 +72,7 @@ export default (db, reducerName) => {
         const next = unpersistedQueue[reducerName]
         unpersistedQueue[reducerName] = null
 
-        return saveReducer(next)
+        return await saveReducer(next)
       }
     } catch (error) {
       console.error(error)

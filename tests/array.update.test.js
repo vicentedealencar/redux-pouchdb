@@ -7,7 +7,6 @@ import {
   waitSync
 } from '../src/index'
 import loadArray from '../src/utils/loadArray'
-import timeout from 'timeout-then'
 
 describe('redux-pouchdb array', () => {
   const db = new PouchDB('app', { db: require('memdown') })
@@ -45,9 +44,6 @@ describe('redux-pouchdb array', () => {
     const success = await waitSync(reducerName)
     success.should.be.equal(true)
 
-    await waitSync(reducerName)
-    await timeout(1000)
-
     const payload = {
       index: 0,
       key: 'x',
@@ -59,7 +55,6 @@ describe('redux-pouchdb array', () => {
     })
 
     await waitSync(reducerName)
-    await timeout(1000)
 
     const docs = await loadArray(db)(reducerName)
     const storeState = store.getState()

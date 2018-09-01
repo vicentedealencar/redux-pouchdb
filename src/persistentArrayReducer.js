@@ -6,11 +6,16 @@ import waitAvailability from './utils/waitAvailability'
 export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
 
 let isInitialized = {}
+let running = {}
+
+const isRunning = reducerName =>
+  running[reducerName] !== undefined && running[reducerName] > 0
 
 export const isArrayUpToDate = reducerName =>
   // console.log(isInitialized[reducerName], isUpToDate(reducerName)),
-  isInitialized !== 'undefined' ||
-  (isInitialized[reducerName] && isUpToDate(reducerName))
+  isInitialized[reducerName] &&
+  isUpToDate(reducerName) &&
+  !isRunning(reducerName)
 
 const updateArrayReducer = (store, doc, reducerName) => {
   // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
@@ -94,14 +99,16 @@ const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
     const reducedState = reducer(state, action)
 
     const init = async () => {
-      const success = await waitAvailability(
-        () => isInitialized[reducerName] && isArrayUpToDate(reducerName)
-      )
-      // console.log('inited', success)
-      if (success && !equals(reducedState, lastState)) {
+      if (!running[reducerName]) running[reducerName] = 0
+
+      running[reducerName] += 1
+
+      if (!equals(reducedState, lastState)) {
         lastState = reducedState
-        saveArrayReducer(reducedState)
+        await saveArrayReducer(reducedState)
       }
+
+      running[reducerName] -= 1
     }
     init()
     // console.log('lastState', lastState, 'reducedState', reducedState)
