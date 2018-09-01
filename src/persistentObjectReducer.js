@@ -10,18 +10,18 @@ let running = {}
 const isRunning = reducerName =>
   running[reducerName] !== undefined && running[reducerName] > 0
 
-const isInitialized = reducerName =>
-  initialized[reducerName] !== false
+const isInitialized = reducerName => initialized[reducerName] !== false
 
-export const isObjectUpToDate = reducerName => (
+export const isObjectUpToDate = reducerName =>
   // console.log(
   //   'isObjectUpToDate',
   //   initialized[reducerName],
   //   isUpToDate(reducerName),
   //   !isRunning(reducerName)
   // ),
-  isInitialized(reducerName) && isUpToDate(reducerName) && !isRunning(reducerName)
-)
+  isInitialized(reducerName) &&
+  isUpToDate(reducerName) &&
+  !isRunning(reducerName)
 
 const setReducer = (store, doc, reducerName) => {
   const { _id, _rev, state } = doc

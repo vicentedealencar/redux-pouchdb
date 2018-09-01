@@ -20,7 +20,9 @@ export const isArrayUpToDate = reducerName =>
   //   isUpToDate(reducerName),
   //   !isRunning(reducerName)
   // ),
-  isInitialized(reducerName) && isUpToDate(reducerName) && !isRunning(reducerName)
+  isInitialized(reducerName) &&
+  isUpToDate(reducerName) &&
+  !isRunning(reducerName)
 
 const updateArrayReducer = (store, doc, reducerName) => {
   // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
