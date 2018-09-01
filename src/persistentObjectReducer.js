@@ -4,12 +4,24 @@ import waitAvailability from './utils/waitAvailability'
 
 export const SET_OBJECT_REDUCER = '@@redux-pouchdb/SET_OBJECT_REDUCER'
 
-let isInitialized = {}
+let initialized = {}
+let running = {}
 
-export const isObjectUpToDate = reducerName =>
-  // console.log(isInitialized[reducerName], isUpToDate(reducerName)),
-  isInitialized !== 'undefined' ||
-  (isInitialized[reducerName] && isUpToDate(reducerName))
+const isRunning = reducerName =>
+  running[reducerName] !== undefined && running[reducerName] > 0
+
+const isInitialized = reducerName =>
+  initialized[reducerName] !== false
+
+export const isObjectUpToDate = reducerName => (
+  // console.log(
+  //   'isObjectUpToDate',
+  //   initialized[reducerName],
+  //   isUpToDate(reducerName),
+  //   !isRunning(reducerName)
+  // ),
+  isInitialized(reducerName) && isUpToDate(reducerName) && !isRunning(reducerName)
+)
 
 const setReducer = (store, doc, reducerName) => {
   const { _id, _rev, state } = doc
@@ -60,14 +72,14 @@ const initializePersistentObjectReducer = async (
     console.error(err)
   }
 
-  isInitialized[reducerName] = true
+  initialized[reducerName] = true
   // console.log('-----inited----')
 }
 
 // Higher order reducer
 const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
   let lastState
-  isInitialized[reducerName] = false
+  initialized[reducerName] = false
   const saveReducer = save(db, reducerName)
 
   initializePersistentObjectReducer(storeGetter, db, reducerName, saveReducer)
@@ -91,10 +103,19 @@ const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
     //   !equals(reducedState, lastState),
     //   reducedState
     // )
-    if (!equals(reducedState, lastState)) {
-      lastState = reducedState
-      saveReducer(reducedState)
+    const init = async () => {
+      if (!running[reducerName]) running[reducerName] = 0
+
+      running[reducerName] += 1
+
+      if (!equals(reducedState, lastState)) {
+        lastState = reducedState
+        await saveReducer(reducedState)
+      }
+
+      running[reducerName] -= 1
     }
+    init()
 
     return reducedState
   }

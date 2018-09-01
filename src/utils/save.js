@@ -43,7 +43,7 @@ export default (db, reducerName) => {
       if (unpersistedQueue[reducerName]) {
         const next = unpersistedQueue[reducerName].shift()
 
-        return saveReducer(next)
+        return await saveReducer(next)
       }
     } catch (error) {
       console.error(error)

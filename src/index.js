@@ -11,7 +11,7 @@ const storeGetter = () => _store
 
 export const waitSync = reducerName =>
   waitAvailability(
-    () =>
+    () => (
       // console.log(
       //   'waitSync',
       //   !!_store,
@@ -19,6 +19,7 @@ export const waitSync = reducerName =>
       //   !!isArrayUpToDate(reducerName)
       // ),
       _store && isArrayUpToDate(reducerName) && isObjectUpToDate(reducerName)
+    )
   )
 
 export const persistStore = store => {

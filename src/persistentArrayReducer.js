@@ -5,17 +5,22 @@ import waitAvailability from './utils/waitAvailability'
 
 export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
 
-let isInitialized = {}
+let initialized = {}
 let running = {}
 
 const isRunning = reducerName =>
   running[reducerName] !== undefined && running[reducerName] > 0
 
+const isInitialized = reducerName => initialized[reducerName] !== false
+
 export const isArrayUpToDate = reducerName =>
-  // console.log(isInitialized[reducerName], isUpToDate(reducerName)),
-  isInitialized[reducerName] &&
-  isUpToDate(reducerName) &&
-  !isRunning(reducerName)
+  // console.log(
+  //   'isArrayUpToDate',
+  //   isInitialized(reducerName),
+  //   isUpToDate(reducerName),
+  //   !isRunning(reducerName)
+  // ),
+  isInitialized(reducerName) && isUpToDate(reducerName) && !isRunning(reducerName)
 
 const updateArrayReducer = (store, doc, reducerName) => {
   // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
@@ -59,12 +64,12 @@ const initializePersistentArrayReducer = async (
     console.error(err)
   }
 
-  isInitialized[reducerName] = true
+  initialized[reducerName] = true
 }
 // Higher order reducer
 const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
   let lastState
-  isInitialized[reducerName] = false
+  initialized[reducerName] = false
   const saveArrayReducer = saveArray(db, reducerName)
   // console.log(storeGetter.toString())
   initializePersistentArrayReducer(

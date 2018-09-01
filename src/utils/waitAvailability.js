@@ -6,8 +6,8 @@ const waitAvailability = getter => {
     tries++
     await timeout(100)
     const x = getter()
+    // tries % 10 === 0 && console.log(tries, 'tries', x, getter.toString())
     return x ? x : tries > 1000 ? null : checkAvailability()
-    // tries % 10 === 0 && console.log(tries, 'tries', getter.toString(), x)
   }
   return checkAvailability()
 }
