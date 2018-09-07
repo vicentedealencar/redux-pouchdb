@@ -4,6 +4,7 @@
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
+    "prepare": "npm run build",
     "format": "prettier --write --no-semi --single-quote src/** tests/**",
     "clean": "rimraf lib",
     "build": "babel src --out-dir lib",
