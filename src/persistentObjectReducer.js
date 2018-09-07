@@ -45,10 +45,12 @@ const initializePersistentObjectReducer = async (
     const store = await waitAvailability(storeGetter)
     // console.log('-----got store----')
 
-    const res = await db.allDocs({ include_docs: true })
-    await Promise.all(
-      res.rows.map(row => setReducer(store, row.doc, reducerName))
-    )
+    const res = await db.get(reducerName)
+    if(res.error) { //404 is expected on first load
+    // console.log(res);
+    } else {
+      setReducer(store, res, res._id);
+    }
     // console.log('---dispatched docs------')
 
     db.changes({
@@ -62,7 +64,7 @@ const initializePersistentObjectReducer = async (
 
       if (change.doc.state) {
         if (!equals(change.doc.state, storeState)) {
-          setReducer(store, change.doc, reducerName)
+          setReducer(store, change.doc, change.id)
         }
       } else {
         saveReducer(store.getState())
