@@ -1,20 +1,20 @@
 {
   "name": "redux-pouchdb",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Sync store state to pouchdb.",
   "main": "dist/lib/index.js",
   "module": "dist/es/index.js",
   "jsnext:main": "dist/es/index.es.js",
   "scripts": {
+    "clean": "rimraf dist",
     "build": "npm-run-all --serial build:**",
     "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir dist/lib",
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir dist/es",
-    "build_old": "rimraf lib && babel src --out-dir lib",
-    "prepublish": "npm run build",
+    "prepublish": "npm-run-all --serial clean build",
     "test": "istanbul cover babel-tape-runner tests/*.js"
   },
   "files": [
-    "lib/",
+    "dist/",
     "package.json",
     "README.md"
   ],
