@@ -1,0 +1,27 @@
+{
+  "plugins": [
+    "transform-class-properties",
+    "transform-object-rest-spread"
+  ],
+  "env": {
+    "commonjs": {
+      "presets": [
+        ["env", { "loose": true }]
+      ]
+    },
+    "es": {
+      "presets": [
+        ["env", { "modules": false, "loose": true }]
+      ]
+    },
+    "testing": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": "current"
+          }
+        }]
+      ]
+    }
+  }
+}

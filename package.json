@@ -1,10 +1,15 @@
 {
-  "name": "samyukti-redux-pouchdb",
-  "version": "0.1.2",
+  "name": "redux-pouchdb",
+  "version": "0.1.3",
   "description": "Sync store state to pouchdb.",
-  "main": "lib/index.js",
+  "main": "dist/lib/index.js",
+  "module": "dist/es/index.js",
+  "jsnext:main": "dist/es/index.es.js",
   "scripts": {
-    "build": "rimraf lib && babel src --out-dir lib",
+    "build": "npm-run-all --serial build:**",
+    "build:commonjs": "cross-env BABEL_ENV=commonjs babel src --out-dir dist/lib",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir dist/es",
+    "build_old": "rimraf lib && babel src --out-dir lib",
     "prepublish": "npm run build",
     "test": "istanbul cover babel-tape-runner tests/*.js"
   },
@@ -28,12 +33,6 @@
     "url": "https://github.com/vicentedealencar/redux-pouchdb/issues"
   },
   "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-0"
-    ]
-  },
   "dependencies": {
     "array.from": "^1.0.3",
     "deep-equal": "^1.0.1"
@@ -41,10 +40,13 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "babel-tape-runner": "^2.0.1",
+    "cross-env": "^5.2.0",
     "istanbul": "^1.1.0-alpha.1",
+    "npm-run-all": "^4.1.3",
     "pouchdb-adapter-memory": "^6.4.3",
     "pouchdb-core": "^6.4.3",
     "redux": "^3.7.2",
