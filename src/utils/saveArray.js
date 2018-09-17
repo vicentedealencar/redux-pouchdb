@@ -1,19 +1,16 @@
 import loadArray from './loadArray'
 import { uniqOmittingDocProps, getDiff } from './ramdaUtils'
+import log from './log'
 
 const unpersistedQueue = {}
 let isUpdating = {}
 let waitingChanges = {}
 
 export const isUpToDate = reducerName => {
-  // console.log('isArrayUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
+  // log('isUpToDate', !isUpdating[reducerName], unpersistedQueue[reducerName])
+  // log(isUpdating, unpersistedQueue, waitingChanges, reducerName)
+
   return (
-    // console.log(
-    //   isUpdating,
-    //   unpersistedQueue,
-    //   waitingChanges,
-    //   reducerName,
-    // ),
     (isUpdating[reducerName] === undefined || !isUpdating[reducerName]) &&
     (unpersistedQueue[reducerName] === undefined ||
       !unpersistedQueue[reducerName]) &&
@@ -24,7 +21,7 @@ export default (db, reducerName) => {
   const loadArrayReducer = loadArray(db)
 
   const saveReducer = async reducerState => {
-    // console.log('save?', !isUpdating[reducerName], reducerState)
+    // log('save?', !isUpdating[reducerName], reducerState)
     if (isUpdating[reducerName]) {
       const docs = await loadArrayReducer(reducerName)
       const diff = getDiff(reducerState, docs)
@@ -33,7 +30,7 @@ export default (db, reducerName) => {
         unpersistedQueue[reducerName] = uniqOmittingDocProps(
           diff.concat(unpersistedQueue[reducerName])
         )
-        // console.log(
+        // log(
         //   'enqueue',
         //   unpersistedQueue[reducerName].length,
         //   unpersistedQueue[reducerName]
@@ -47,25 +44,25 @@ export default (db, reducerName) => {
 
     try {
       if (!Array.isArray(reducerState)) {
-        // console.log('not array', reducerState)
+        // log('not array', reducerState)
         throw new Error(`State of ${reducerName} must be an array`)
       }
       const docs = await loadArrayReducer(reducerName)
-      // console.log('load to save docs', docs.length)
+      // log('load to save docs', docs.length)
 
       const bulk = getDiff(reducerState, docs)
 
-      // console.log(bulk.length, 'reducerState', reducerState, 'docs', docs)
+      // log(bulk.length, 'reducerState', reducerState, 'docs', docs)
       if (bulk.length) {
         if (!waitingChanges[reducerName]) waitingChanges[reducerName] = 0
         waitingChanges[reducerName] += 1
 
-        // console.log('bulk', bulk, 'waitingChanges', waitingChanges)
+        // log('bulk', bulk, 'waitingChanges', waitingChanges)
         await db.bulkDocs(bulk)
         waitingChanges[reducerName] -= 1
       }
 
-      // console.log('IS UP TO DATE', reducerName, isArrayUpToDate(reducerName))
+      // log('IS UP TO DATE', reducerName, isUpToDate(reducerName))
       isUpdating[reducerName] = false
 
       if (unpersistedQueue[reducerName]) {

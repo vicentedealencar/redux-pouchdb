@@ -1,8 +1,19 @@
-import { equals } from 'ramda'
+import { equalsOmittingDocProps } from './utils/ramdaUtils'
 import save, { isUpToDate } from './utils/save'
 import waitAvailability from './utils/waitAvailability'
+import log from './utils/log'
 
 export const SET_OBJECT_REDUCER = '@@redux-pouchdb/SET_OBJECT_REDUCER'
+export const INIT_OBJECT_REDUCER = '@@redux-pouchdb/INIT_OBJECT_REDUCER'
+
+const LOCAL_IDENTIFIER = Array(12)
+  .fill(0)
+  .map(_ =>
+    String.fromCharCode(
+      (x => (x > 25 ? x + 71 : x + 65))(Math.floor(Math.random() * 52))
+    )
+  )
+  .join('')
 
 let initialized = {}
 let running = {}
@@ -13,7 +24,7 @@ const isRunning = reducerName =>
 const isInitialized = reducerName => initialized[reducerName] !== false
 
 export const isObjectUpToDate = reducerName =>
-  // console.log(
+  // log(
   //   'isObjectUpToDate',
   //   initialized[reducerName],
   //   isUpToDate(reducerName),
@@ -25,7 +36,7 @@ export const isObjectUpToDate = reducerName =>
 
 const setReducer = (store, doc, reducerName) => {
   const { _id, _rev, state } = doc
-  // console.log('setReducer', doc)
+  // log('setReducer', doc)
   store.dispatch({
     type: SET_OBJECT_REDUCER,
     reducerName, //_id,
@@ -43,49 +54,65 @@ const initializePersistentObjectReducer = async (
 ) => {
   try {
     const store = await waitAvailability(storeGetter)
-    // console.log('-----got store----')
+    // log('-----got store----')
 
     const res = await db.allDocs({ include_docs: true })
     await Promise.all(
       res.rows.map(row => setReducer(store, row.doc, reducerName))
     )
-    // console.log('---dispatched docs------')
+    // log('---dispatched docs------')
 
     db.changes({
       include_docs: true,
       live: true,
       since: 'now'
     }).on('change', change => {
-      const storeState = store.getState()
+      // if (change.doc.state && change.doc.madeBy !== LOCAL_IDENTIFIER) {
+      //   setReducer(change.doc)
+      // }
 
-      // console.log('doc change', change)
+      const storeState = store.getState()
+      // log('doc change', JSON.stringify(change))
 
       if (change.doc.state) {
-        if (!equals(change.doc.state, storeState)) {
+        // log(
+        // !equalsOmittingDocProps(change.doc.state, storeState)
+        // JSON.stringify(change.doc.state, null, 2),
+        // JSON.stringify(storeState, null, 2)
+        // )
+        if (
+          !equalsOmittingDocProps(change.doc.state, storeState) &&
+          change.doc.madeBy !== LOCAL_IDENTIFIER
+        ) {
           setReducer(store, change.doc, reducerName)
         }
       } else {
+        log(0)
+
         saveReducer(store.getState())
       }
     })
+
+    initialized[reducerName] = true
+    store.dispatch({
+      type: INIT_OBJECT_REDUCER
+    })
+    // log('-----inited----')
   } catch (err) {
     console.error(err)
   }
-
-  initialized[reducerName] = true
-  // console.log('-----inited----')
 }
 
 // Higher order reducer
 const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
   let lastState
   initialized[reducerName] = false
-  const saveReducer = save(db, reducerName)
+  const saveReducer = save(db, reducerName, LOCAL_IDENTIFIER)
 
   initializePersistentObjectReducer(storeGetter, db, reducerName, saveReducer)
 
   return (state, action) => {
-    // console.log('reducer', action.type, state)
+    // log('reducer', action.type, state)
     if (
       action.type === SET_OBJECT_REDUCER &&
       action.reducerName === reducerName &&
@@ -94,23 +121,34 @@ const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
       lastState = action.state
       return reducer(action.state, action)
     }
+    if (action.type === SET_OBJECT_REDUCER) {
+      // Another reducer's state... ignore.
+      return state
+    }
 
     const reducedState = reducer(state, action)
 
-    // console.log(
-    //   'save?',
-    //   isInitialized[reducerName],
-    //   !equals(reducedState, lastState),
-    //   reducedState
-    // )
     const init = async () => {
       if (!running[reducerName]) running[reducerName] = 0
 
       running[reducerName] += 1
 
-      if (!equals(reducedState, lastState)) {
-        lastState = reducedState
-        await saveReducer(reducedState)
+      log(
+        'save?',
+        isInitialized(reducerName),
+        !equalsOmittingDocProps(reducedState, lastState),
+        reducedState
+      )
+      if (
+        !equalsOmittingDocProps(reducedState, lastState)
+      ) {
+        if (isInitialized(reducerName)) {
+          lastState = reducedState
+          log('init save')
+          await saveReducer(reducedState)
+        } else {
+          
+        }
       }
 
       running[reducerName] -= 1

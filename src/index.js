@@ -5,21 +5,23 @@ import persistentObjectReducer, {
   isObjectUpToDate
 } from './persistentObjectReducer'
 import waitAvailability from './utils/waitAvailability'
+import log from './utils/log'
 
 let _store
 const storeGetter = () => _store
 
 export const waitSync = reducerName =>
-  waitAvailability(
-    () =>
-      // console.log(
-      //   'waitSync',
-      //   !!_store,
-      //   !!isObjectUpToDate(reducerName),
-      //   !!isArrayUpToDate(reducerName)
-      // ),
+  waitAvailability(() => {
+    log(
+      'waitSync',
+      !!_store,
+      !!isObjectUpToDate(reducerName),
+      !!isArrayUpToDate(reducerName)
+    )
+    return (
       _store && isArrayUpToDate(reducerName) && isObjectUpToDate(reducerName)
-  )
+    )
+  })
 
 export const persistStore = store => {
   _store = store

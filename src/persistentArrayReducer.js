@@ -1,7 +1,7 @@
-import { equals } from 'ramda'
 import saveArray, { isUpToDate } from './utils/saveArray'
 import { equalsOmittingDocProps } from './utils/ramdaUtils'
 import waitAvailability from './utils/waitAvailability'
+import log from './utils/log'
 
 export const UPDATE_ARRAY_REDUCER = '@@redux-pouchdb/UPDATE_ARRAY_REDUCER'
 
@@ -13,20 +13,24 @@ const isRunning = reducerName =>
 
 const isInitialized = reducerName => initialized[reducerName] !== false
 
-export const isArrayUpToDate = reducerName =>
-  // console.log(
+export const isArrayUpToDate = reducerName => {
+  // log(
   //   'isArrayUpToDate',
   //   isInitialized(reducerName),
   //   isUpToDate(reducerName),
   //   !isRunning(reducerName)
-  // ),
-  isInitialized(reducerName) &&
-  isUpToDate(reducerName) &&
-  !isRunning(reducerName)
+  // )
+
+  return (
+    isInitialized(reducerName) &&
+    isUpToDate(reducerName) &&
+    !isRunning(reducerName)
+  )
+}
 
 const updateArrayReducer = (store, doc, reducerName) => {
-  // console.log('store.dispatch update array', JSON.stringify(doc, null, 2))
-  store.dispatch({
+  // log('store.dispatch update array', JSON.stringify(doc, null, 2))
+  return store.dispatch({
     type: UPDATE_ARRAY_REDUCER,
     reducerName,
     doc
@@ -53,12 +57,12 @@ const initializePersistentArrayReducer = async (
       live: true,
       since: 'now'
     }).on('change', change => {
-      // console.log('change', change)
+      // log('change', change)
       if (change.doc) {
-        // console.log('updateArrayReducer', change.doc)
+        // log('updateArrayReducer', change.doc)
         updateArrayReducer(store, change.doc, reducerName)
       } else {
-        // console.log('saveArrayReducer', store.getState())
+        // log('saveArrayReducer', store.getState())
         saveArrayReducer(store.getState())
       }
     })
@@ -73,7 +77,7 @@ const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
   let lastState
   initialized[reducerName] = false
   const saveArrayReducer = saveArray(db, reducerName)
-  // console.log(storeGetter.toString())
+  // log(storeGetter.toString())
   initializePersistentArrayReducer(
     storeGetter,
     db,
@@ -82,23 +86,30 @@ const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
   )
 
   return (state, action) => {
-    // console.log('reducer', action.type, state)
+    // log('reducer', action.type, state)
     if (
       action.type === UPDATE_ARRAY_REDUCER &&
       action.reducerName === reducerName &&
       action.doc
     ) {
-      // console.log('action', action)
+      // log('action', action)
+      let found = false
+
       lastState = state.map(item => {
         if (
           equalsOmittingDocProps(item, action.doc) ||
           item._id === action.doc._id
         ) {
+          found = true
           return action.doc
         }
 
         return item
       })
+
+      if (!found) {
+        lastState.push(action.doc)
+      }
 
       return reducer(lastState, action)
     }
@@ -110,7 +121,10 @@ const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
 
       running[reducerName] += 1
 
-      if (!equals(reducedState, lastState)) {
+      if (
+        isInitialized(reducerName) &&
+        !equalsOmittingDocProps(reducedState, lastState)
+      ) {
         lastState = reducedState
         await saveArrayReducer(reducedState)
       }
@@ -118,7 +132,7 @@ const persistentArrayReducer = (storeGetter, db, reducerName) => reducer => {
       running[reducerName] -= 1
     }
     init()
-    // console.log('lastState', lastState, 'reducedState', reducedState)
+    // log('lastState', lastState, 'reducedState', reducedState)
 
     return reducedState
   }

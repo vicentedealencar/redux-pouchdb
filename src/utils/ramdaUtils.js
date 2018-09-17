@@ -1,6 +1,6 @@
 import { equals, uniqWith, omit, concat, differenceWith } from 'ramda'
 
-export const omitDocProps = omit(['_id', '_rev', '_deleted'])
+export const omitDocProps = omit(['_id', '_rev', '_deleted', 'madeBy'])
 export const equalsOmittingDocProps = (curr, old) =>
   equals(omitDocProps(curr), omitDocProps(old))
 export const uniqOmittingDocProps = uniqWith(equalsOmittingDocProps)

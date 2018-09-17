@@ -1,6 +1,6 @@
 {
   "name": "redux-pouchdb",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
@@ -12,6 +12,7 @@
   },
   "files": [
     "lib/",
+    "src/",
     "package.json",
     "README.md"
   ],
