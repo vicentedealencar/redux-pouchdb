@@ -139,15 +139,12 @@ const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
         !equalsOmittingDocProps(reducedState, lastState),
         reducedState
       )
-      if (
-        !equalsOmittingDocProps(reducedState, lastState)
-      ) {
+      if (!equalsOmittingDocProps(reducedState, lastState)) {
         if (isInitialized(reducerName)) {
           lastState = reducedState
           log('init save')
           await saveReducer(reducedState)
         } else {
-          
         }
       }
 

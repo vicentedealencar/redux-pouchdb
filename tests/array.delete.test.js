@@ -34,18 +34,12 @@ describe('redux-pouchdb array', () => {
     const success = await waitSync(reducerName)
     success.should.be.equal(true)
 
-    const docs = await loadArray(db)(reducerName)
-    const x1a = store
-      .getState()
-      .map(a => a.x)
-      .sort()
-      .join()
-    const x1b = docs
-      .map(a => a.x)
-      .sort()
-      .join()
-    // console.log('store', x1a, 'doc', x1b)
-    x1a.should.be.equal(x1b)
+    // const x1a = store
+    //   .getState()
+    //   .map(a => a.x)
+    //   .sort()
+    //   .join()
+    // console.log('store', x1a)
 
     store.dispatch({
       type: DECREMENT
@@ -65,6 +59,7 @@ describe('redux-pouchdb array', () => {
       .sort()
       .join()
 
+    // console.log('store', x2a, 'doc', x2b)
     x2a.should.be.equal(x2b)
 
     done()
