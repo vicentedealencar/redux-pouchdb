@@ -1,16 +1,12 @@
 {
-  "plugins": [
-    "transform-object-rest-spread"
+  "presets": [
+    "@babel/preset-env"
   ],
-  "env": {
-    "testing": {
-      "presets": [
-        ["env", {
-          "targets": {
-            "node": "8"
-          }
-        }]
-      ]
-    }
-  }
+  "plugins": [
+    ["@babel/plugin-transform-runtime",
+      {
+        "regenerator": true
+      }
+    ]
+  ]
 }
