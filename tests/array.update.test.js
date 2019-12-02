@@ -18,8 +18,8 @@ describe('redux-pouchdb array', () => {
     const { index, key, value } = action.payload || {}
     switch (action.type) {
       case UPDATE_PROP:
-        return state.map(
-          (item, i) => (i !== index ? item : { ...item, [key]: value })
+        return state.map((item, i) =>
+          i !== index ? item : { ...item, [key]: value }
         )
       case DELETE_PROP:
         return state.map((item, i) => {
