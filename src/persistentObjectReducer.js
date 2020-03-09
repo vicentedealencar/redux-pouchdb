@@ -37,12 +37,14 @@ export const isObjectUpToDate = reducerName =>
 const setReducer = (store, doc, reducerName) => {
   const { _id, _rev, state } = doc
   // log('setReducer', doc)
-  store.dispatch({
-    type: SET_OBJECT_REDUCER,
-    reducerName, //_id,
-    state,
-    _rev
-  })
+  if (_id === reducerName) {
+    store.dispatch({
+      type: SET_OBJECT_REDUCER,
+      reducerName, //_id,
+      state,
+      _rev
+    })
+  }
 }
 
 // service
