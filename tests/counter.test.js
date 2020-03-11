@@ -25,10 +25,8 @@ describe('redux-pouchdb tests', () => {
   it('should persist store state', async done => {
     let store = createStore(finalReducer)
     persistStore(store)
-    // console.log('-----go?----')
     const success = await waitSync(reducerName)
     success.should.be.equal(true)
-    // console.log('-----asserted----')
 
     const doc = await load(db)(reducerName)
     // console.log('load', reducerName, doc)

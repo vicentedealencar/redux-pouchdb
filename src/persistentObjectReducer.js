@@ -17,6 +17,7 @@ const LOCAL_IDENTIFIER = Array(12)
 
 let initialized = {}
 let running = {}
+const dispatched = {}
 
 const isRunning = reducerName =>
   running[reducerName] !== undefined && running[reducerName] > 0
@@ -52,52 +53,26 @@ const initializePersistentObjectReducer = async (
   storeGetter,
   db,
   reducerName,
-  saveReducer
 ) => {
   try {
     const store = await waitAvailability(storeGetter)
+    if (dispatched[reducerName]) {
+      return
+    }
+    dispatched[reducerName] = true
     // log('-----got store----')
 
-    const res = await db.allDocs({ include_docs: true })
-    await Promise.all(
-      res.rows.map(row => setReducer(store, row.doc, reducerName))
-    )
+    try{
+      const res = await db.get(reducerName)
+      setReducer(store, res, reducerName)
+    } catch(err){
+      console.error(err);
+    }
     // log('---dispatched docs------')
-
-    db.changes({
-      include_docs: true,
-      live: true,
-      since: 'now'
-    }).on('change', change => {
-      // if (change.doc.state && change.doc.madeBy !== LOCAL_IDENTIFIER) {
-      //   setReducer(change.doc)
-      // }
-
-      const storeState = store.getState()
-      // log('doc change', JSON.stringify(change))
-
-      if (change.doc.state) {
-        // log(
-        // !equalsOmittingDocProps(change.doc.state, storeState)
-        // JSON.stringify(change.doc.state, null, 2),
-        // JSON.stringify(storeState, null, 2)
-        // )
-        if (
-          !equalsOmittingDocProps(change.doc.state, storeState) &&
-          change.doc.madeBy !== LOCAL_IDENTIFIER
-        ) {
-          setReducer(store, change.doc, reducerName)
-        }
-      } else {
-        log(0)
-
-        saveReducer(store.getState())
-      }
-    })
 
     initialized[reducerName] = true
     store.dispatch({
-      type: INIT_OBJECT_REDUCER
+      type: INIT_OBJECT_REDUCER,
     })
     // log('-----inited----')
   } catch (err) {
@@ -105,13 +80,65 @@ const initializePersistentObjectReducer = async (
   }
 }
 
+const eventsListenerFactory = (db, reducerActions = {}) => {
+  db.changes({
+    include_docs: true,
+    live: true,
+    since: 'now',
+  }).on('change', (change) => {
+    // if (change.doc.state && change.doc.madeBy !== LOCAL_IDENTIFIER) {
+    //   setReducer(change.doc)
+    // }
+    if (!reducerActions[change.doc._id]) {
+      throw new Error(`${change.doc._id} must be subscribed to listener`)
+    }
+    const [storeGetter, saveReducer] = reducerActions[change.doc._id]
+
+    const store = storeGetter()
+
+
+    const storeState = store.getState()
+    // log('doc change', JSON.stringify(change))
+
+    if (change.doc.state) {
+      // log(
+      // !equalsOmittingDocProps(change.doc.state, storeState)
+      // JSON.stringify(change.doc.state, null, 2),
+      // JSON.stringify(storeState, null, 2)
+      // )
+      if (
+        !equalsOmittingDocProps(change.doc.state, storeState) &&
+        change.doc.madeBy !== LOCAL_IDENTIFIER
+      ) {
+        setReducer(store, change.doc, change.doc._id)
+      }
+    } else {
+      log(0)
+
+      saveReducer(store.getState())
+    }
+  })
+
+  return (reducerName, storeGetter, saveReducer) => {
+    reducerActions[reducerName] = [storeGetter, saveReducer]
+  }
+}
+
+let eventsListener
+
 // Higher order reducer
-const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
+const persistentObjectReducer = (storeGetter, db, reducerName) => (reducer) => {
   let lastState
   initialized[reducerName] = false
   const saveReducer = save(db, reducerName, LOCAL_IDENTIFIER)
 
   initializePersistentObjectReducer(storeGetter, db, reducerName, saveReducer)
+
+  if (!eventsListener) {
+    eventsListener = eventsListenerFactory(db)
+  }
+
+  eventsListener(reducerName, storeGetter, saveReducer)
 
   return (state, action) => {
     // log('reducer', action.type, state)
@@ -135,18 +162,16 @@ const persistentObjectReducer = (storeGetter, db, reducerName) => reducer => {
 
       running[reducerName] += 1
 
-      log(
-        'save?',
-        isInitialized(reducerName),
-        !equalsOmittingDocProps(reducedState, lastState),
-        reducedState
-      )
+      // log(
+      //   'save?',
+      //   isInitialized(reducerName),
+      //   !equalsOmittingDocProps(reducedState, lastState),
+      //   reducedState,
+      // )
       if (!equalsOmittingDocProps(reducedState, lastState)) {
         if (isInitialized(reducerName)) {
           lastState = reducedState
-          log('init save')
           await saveReducer(reducedState)
-        } else {
         }
       }
 
