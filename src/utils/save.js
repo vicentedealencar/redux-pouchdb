@@ -51,8 +51,8 @@ export default (db, reducerName, madeBy) => {
 
       isUpdating[reducerName] = false
       if (
-        unpersistedQueue[reducerName] //&&
-        // unpersistedQueue[reducerName].length
+        unpersistedQueue[reducerName] &&
+        unpersistedQueue[reducerName].length
       ) {
         const next = unpersistedQueue[reducerName].shift()
         log('next', next)
