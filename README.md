@@ -41,7 +41,7 @@ const counter = (state = {count: 0}, action) => {
 };
 
 const reducerName = 'counter'
-const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
+const finalReducer = persistentDocumentReducer(db, reducerName)(counter)
 ```
 
 This is how reducer would be persisted like this
