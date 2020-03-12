@@ -40,8 +40,9 @@ const counter = (state = {count: 0}, action) => {
   }
 };
 
+const db = new PouchDB('dbname');
 const reducerName = 'counter'
-const finalReducer = persistentDocumentReducer(db, reducerName)(reducer)
+const finalReducer = persistentDocumentReducer(db, reducerName)(counter)
 ```
 
 This is how reducer would be persisted like this
@@ -72,6 +73,7 @@ const stackCounter = (state = [{ x: 0 }, { x: 1 }, { x: 2 }], action) => {
   }
 }
 
+const db = new PouchDB('dbname');
 const reducerName = 'stackCounter'
 export default persistentCollectionReducer(db, reducerName)(stackCounter)
 ```
@@ -92,8 +94,6 @@ This plain function holds the store for later usage
 
 ``` js
 import { persistStore } from 'redux-pouchdb';
-
-const db = new PouchDB('dbname');
 
 const store = createStore(reducer, initialState);
 persistStore(store)
