@@ -12,7 +12,7 @@ It is very simple:
 
 ## Install
 
-`yarn add redux-pouchdb-per-reducer@1.0.0-rc.1`
+`yarn add redux-pouchdb-per-reducer`
 
 ## Usage
 
