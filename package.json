@@ -1,13 +1,12 @@
 {
   "name": "redux-pouchdb-per-reducer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
     "format": "prettier --write --no-semi --single-quote src/** tests/**",
     "clean": "rimraf lib",
     "build": "babel src --out-dir lib",
-    "prepare": "npm run clean && npm run build",
     "test": "cross-env BABEL_ENV=testing jest"
   },
   "files": [
