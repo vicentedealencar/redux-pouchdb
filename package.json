@@ -1,6 +1,6 @@
 {
   "name": "redux-pouchdb-per-reducer",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
