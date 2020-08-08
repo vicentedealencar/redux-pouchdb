@@ -1,5 +1,5 @@
 {
-  "name": "redux-pouchdb",
+  "name": "redux-pouchdb-per-reducer",
   "version": "1.0.0-rc.3",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
@@ -18,19 +18,19 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vicentedealencar/redux-pouchdb"
+    "url": "https://github.com/fabiodmferreira-forks/redux-pouchdb"
   },
   "keywords": [
     "redux",
     "react-component",
     "pouchdb"
   ],
-  "author": "Vicente de Alencar",
+  "author": "Fábio Ferreira",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vicentedealencar/redux-pouchdb/issues"
+    "url": "https://github.com/fabiodmferreira-forks/redux-pouchdb/issues"
   },
-  "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
+  "homepage": "https://github.com/fabiodmferreira-forks/redux-pouchdb",
   "dependencies": {
     "@babel/runtime": "^7.7.4",
     "ramda": "^0.26.1",

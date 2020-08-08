@@ -1,4 +1,8 @@
-# redux-pouchdb
+# redux-pouchdb-per-reducer
+
+Repository forked from [redux-pouchdb](https://github.com/vicentedealencar/redux-pouchdb).
+
+This library allows to store the state of multiple redux reducers in multiple couchdb collections.
 
 ## How it is done
 
@@ -8,7 +12,7 @@ It is very simple:
 
 ## Install
 
-`yarn add redux-pouchdb@1.0.0-rc.1`
+`yarn add redux-pouchdb-per-reducer@1.0.0-rc.1`
 
 ## Usage
 
