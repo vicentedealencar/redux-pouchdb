@@ -46,6 +46,54 @@ describe('redux-pouchdb array', () => {
     store.dispatch({
       type: INCREMENT
     })
+
+    // console.log('--INC---')
+
+    await waitSync(reducerName)
+    // console.log('--waited---')
+
+    const docs2 = await loadArray(db)(reducerName)
+    // console.log('--loaded2---')
+
+    const x2a = store
+      .getState()
+      .map(a => a.x)
+      .sort()
+      .join()
+    const x2b = docs2
+      .map(a => a.x)
+      .sort()
+      .join()
+
+    // console.log('store', x2a, 'doc', x2b)
+    x2a.should.be.equal(x2b)
+
+    done()
+  })
+
+  it('should persist store state as array and insert when multple actions modify the store', async done => {
+    // console.log('--go---')
+    let store = createStore(finalReducer)
+    persistStore(store)
+    // console.log('--persisted---')
+
+    const success = await waitSync(reducerName)
+    success.should.be.equal(true)
+
+    // const x1a = store
+    //   .getState()
+    //   .map(a => a.x)
+    //   .sort()
+    //   .join()
+    // console.log('store', x1a)
+
+    store.dispatch({
+      type: INCREMENT
+    })
+    store.dispatch({
+      type: INCREMENT
+    })
+
     // console.log('--INC---')
 
     await waitSync(reducerName)
