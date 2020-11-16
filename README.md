@@ -2,7 +2,7 @@
 
 Repository forked from [redux-pouchdb](https://github.com/vicentedealencar/redux-pouchdb).
 
-This library allows to store the state of multiple redux reducers in multiple couchdb collections.
+This library allows to store the state of each redux reducer in one isolated couchdb document.
 
 ## How it is done
 
@@ -16,7 +16,7 @@ It is very simple:
 
 ## Usage
 
-The reducers to be persisted should be augmented by a higher order reducer accordingly to the type of the state. 
+The reducers to be persisted should be augmented by a higher order reducer accordingly to the type of the state.
 
 Reducers in which the state is an object get persisted as a single document by using `persistentDocumentReducer`
 
