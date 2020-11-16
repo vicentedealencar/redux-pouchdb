@@ -1,14 +1,14 @@
 {
-  "name": "redux-pouchdb",
-  "version": "1.0.0-rc.3",
+  "name": "redux-pouchdb-per-reducer",
+  "version": "1.0.4",
   "description": "sync store state to pouchdb",
   "main": "lib/index.js",
   "scripts": {
     "format": "prettier --write --no-semi --single-quote src/** tests/**",
     "clean": "rimraf lib",
     "build": "babel src --out-dir lib",
-    "prepare": "npm run clean && npm run build",
-    "test": "cross-env BABEL_ENV=testing jest"
+    "test": "cross-env BABEL_ENV=testing jest",
+    "prepare": "npm run build"
   },
   "files": [
     "lib/",
@@ -18,35 +18,35 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vicentedealencar/redux-pouchdb"
+    "url": "https://github.com/fabiodmferreira-forks/redux-pouchdb"
   },
   "keywords": [
     "redux",
     "react-component",
     "pouchdb"
   ],
-  "author": "Vicente de Alencar",
+  "author": "Fábio Ferreira",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vicentedealencar/redux-pouchdb/issues"
+    "url": "https://github.com/fabiodmferreira-forks/redux-pouchdb/issues"
   },
-  "homepage": "https://github.com/vicentedealencar/redux-pouchdb",
+  "homepage": "https://github.com/fabiodmferreira-forks/redux-pouchdb",
   "dependencies": {
-    "@babel/runtime": "^7.7.4",
+    "memdown": "^5.1.0",
+    "pouchdb": "^7.1.1",
     "ramda": "^0.26.1",
+    "redux": "^4.0.4",
     "timeout-then": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.7.4",
-    "@babel/core": "^7.7.4",
-    "@babel/plugin-transform-runtime": "^7.7.4",
-    "@babel/preset-env": "^7.7.4",
+    "@babel/cli": "^7.12.1",
+    "@babel/core": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/runtime": "^7.12.1",
     "cross-env": "^6.0.3",
     "jest": "^24.9.0",
-    "memdown": "^5.1.0",
-    "pouchdb": "^7.1.1",
     "prettier": "^1.19.1",
-    "redux": "^4.0.4",
     "rimraf": "^3.0.0",
     "should": "^13.2.3"
   },
