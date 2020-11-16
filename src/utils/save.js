@@ -26,37 +26,23 @@ export default (db, reducerName, madeBy) => {
       const doc = await loadReducer(reducerName)
 
       const newDoc = { ...doc, madeBy, state: reducerState }
-      // const newDoc = {
-      //   ...doc
-      // }
 
-      // if (Array.isArray(reducerState)) {
-      //   newDoc.state = [...(doc.state || []), ...reducerState]
-      // } else {
-      //   newDoc.state = {
-      //     ...doc.state,
-      //     ...reducerState
-      //   }
-      // }
       log(
         'put',
         newDoc,
         isUpdating[reducerName],
         unpersistedQueue[reducerName],
         typeof unpersistedQueue[reducerName]
-        // Object.keys(unpersistedQueue[reducerName]),
-        // unpersistedQueue[reducerName].lenght
       )
       await db.put(newDoc)
 
       isUpdating[reducerName] = false
       if (
-        unpersistedQueue[reducerName] //&&
-        // unpersistedQueue[reducerName].length
+        unpersistedQueue[reducerName] &&
+        unpersistedQueue[reducerName].length
       ) {
         const next = unpersistedQueue[reducerName].shift()
-        log('next', next)
-        return await saveReducer(next)
+        await saveReducer(next)
       }
     } catch (error) {
       console.error(error)

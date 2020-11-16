@@ -112,10 +112,6 @@ const eventsListenerFactory = (db, reducerActions = {}) => {
       ) {
         setReducer(store, change.doc, change.doc._id)
       }
-    } else {
-      log(0)
-
-      saveReducer(store.getState())
     }
   })
 
